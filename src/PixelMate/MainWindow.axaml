@@ -80,6 +80,28 @@
             <Setter Property="Opacity" Value="0.34" />
         </Style>
 
+        <Style Selector="ToggleButton.magnifierChoice">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinWidth" Value="31" />
+            <Setter Property="Padding" Value="5,1" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontFamily" Value="SF Mono, Menlo, Consolas, monospace" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ToggleButton.magnifierChoice:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.magnifierChoice:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#233D58" />
+            <Setter Property="TextElement.Foreground" Value="#EAF4FF" />
+        </Style>
+
         <Style Selector="Button.primary">
             <Setter Property="Height" Value="32" />
             <Setter Property="Padding" Value="15,4" />
@@ -331,6 +353,30 @@
                             FontSize="16"
                             IsEnabled="False"
                             ToolTip.Tip="放大" />
+                    <StackPanel x:Name="MagnifierScalePanel"
+                                Orientation="Horizontal"
+                                Spacing="1"
+                                IsVisible="False">
+                        <Border Classes="statusSeparator" />
+                        <TextBlock Text="放大镜"
+                                   Classes="statusLabel"
+                                   Margin="0,0,4,0" />
+                        <ToggleButton x:Name="Magnifier8Button"
+                                      Classes="magnifierChoice"
+                                      Click="Magnifier8_Click"
+                                      Content="8×"
+                                      ToolTip.Tip="每像素放大 8 倍" />
+                        <ToggleButton x:Name="Magnifier12Button"
+                                      Classes="magnifierChoice"
+                                      Click="Magnifier12_Click"
+                                      Content="12×"
+                                      ToolTip.Tip="每像素放大 12 倍" />
+                        <ToggleButton x:Name="Magnifier16Button"
+                                      Classes="magnifierChoice"
+                                      Click="Magnifier16_Click"
+                                      Content="16×"
+                                      ToolTip.Tip="每像素放大 16 倍" />
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>

@@ -6,6 +6,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using PixelMate.Colors;
 using PixelMate.Imaging;
+using PixelMate.Magnifier;
 using PixelMate.Measurement;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -29,6 +30,28 @@ public sealed class ImageCanvas : Control
     private static readonly IBrush PickerMutedTextBrush = new SolidColorBrush(Color.Parse("#AFAFB6"));
     private static readonly IPen PickerBorderPen =
         new Pen(new SolidColorBrush(Color.Parse("#5A5A62")), 1);
+    private static readonly IBrush MagnifierBackgroundBrush =
+        new SolidColorBrush(Color.Parse("#F21A1A1E"));
+    private static readonly IBrush MagnifierViewportBackgroundBrush =
+        new SolidColorBrush(Color.Parse("#121214"));
+    private static readonly IBrush MagnifierTextBrush =
+        new SolidColorBrush(Color.Parse("#F5F5F7"));
+    private static readonly IBrush MagnifierMutedTextBrush =
+        new SolidColorBrush(Color.Parse("#AFAFB6"));
+    private static readonly IPen MagnifierBorderPen =
+        new Pen(new SolidColorBrush(Color.Parse("#66666E")), 1);
+    private static readonly IPen MagnifierDividerPen =
+        new Pen(new SolidColorBrush(Color.Parse("#3D3D43")), 1);
+    private static readonly IPen MagnifierGridPen =
+        new Pen(new SolidColorBrush(Color.Parse("#55FFFFFF")), 0.55);
+    private static readonly IPen MagnifierCurrentPixelShadowPen =
+        new Pen(new SolidColorBrush(Color.Parse("#B0000000")), 4);
+    private static readonly IPen MagnifierCurrentPixelPen =
+        new Pen(new SolidColorBrush(Color.Parse("#52A7FF")), 2);
+    private static readonly IPen MagnifierCrosshairShadowPen =
+        new Pen(new SolidColorBrush(Color.Parse("#B0000000")), 3);
+    private static readonly IPen MagnifierCrosshairPen =
+        new Pen(new SolidColorBrush(Color.Parse("#F7FAFF")), 1);
     private static readonly IPen MeasurementShadowPen = new Pen(MeasurementShadowBrush, 2.8);
     private static readonly IPen MeasurementPen = new Pen(MeasurementBrush, 1.1);
     private static readonly IPen MeasurementLabelBorderPen =
@@ -43,7 +66,9 @@ public sealed class ImageCanvas : Control
     private bool _isPanning;
     private bool _isMeasurementEnabled;
     private bool _isEyedropperEnabled;
+    private bool _isMagnifierEnabled;
     private bool _isMeasuring;
+    private int _magnifierScale = 12;
     private IPointer? _measurementPointer;
     private ImagePoint _measurementStart;
     private PixelMeasurement? _measurementDraft;
@@ -75,6 +100,8 @@ public sealed class ImageCanvas : Control
     public IReadOnlyList<PixelMeasurement> Measurements => _measurements;
 
     public bool HasMeasurements => _measurements.Count > 0;
+
+    public int MagnifierScale => _magnifierScale;
 
     internal ImageSize SetImage(DecodedOriginalImage image)
     {
@@ -206,6 +233,42 @@ public sealed class ImageCanvas : Control
         }
     }
 
+    public void SetMagnifierEnabled(bool isEnabled)
+    {
+        if (_isMagnifierEnabled == isEnabled)
+        {
+            return;
+        }
+
+        _isMagnifierEnabled = isEnabled;
+        UpdateCursor();
+
+        if (isEnabled && _lastPointerCanvasPosition is { } position)
+        {
+            ReportPointerPosition(position);
+        }
+        else
+        {
+            InvalidateVisual();
+        }
+    }
+
+    public void SetMagnifierScale(int scale)
+    {
+        if (scale <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(scale), "放大倍数必须大于零。");
+        }
+
+        if (_magnifierScale == scale)
+        {
+            return;
+        }
+
+        _magnifierScale = scale;
+        InvalidateVisual();
+    }
+
     public void ClearMeasurements()
     {
         var hadMeasurements = _measurements.Count > 0 || _measurementDraft is not null;
@@ -273,6 +336,7 @@ public sealed class ImageCanvas : Control
             }
 
             DrawEyedropperPreview(context);
+            DrawMagnifier(context);
         }
     }
 
@@ -471,6 +535,7 @@ public sealed class ImageCanvas : Control
         _bitmap = null;
         _pixels = null;
         _sampledColor = null;
+        _lastPixelInside = false;
         _lastPointerCanvasPosition = null;
         ClearMeasurements();
         bitmap?.Dispose();
@@ -484,16 +549,17 @@ public sealed class ImageCanvas : Control
             out var pixelY);
         PixelColor? sampledColor = null;
         if (inside
-            && _isEyedropperEnabled
+            && (_isEyedropperEnabled || _isMagnifierEnabled)
             && _pixels?.TryGetPixel(pixelX, pixelY, out var color) == true)
         {
             sampledColor = color;
         }
 
-        if (inside == _lastPixelInside
-            && pixelX == _lastPixelX
-            && pixelY == _lastPixelY
-            && sampledColor == _sampledColor)
+        var stateChanged = inside != _lastPixelInside
+            || pixelX != _lastPixelX
+            || pixelY != _lastPixelY
+            || sampledColor != _sampledColor;
+        if (!stateChanged && !_isMagnifierEnabled)
         {
             return;
         }
@@ -503,9 +569,180 @@ public sealed class ImageCanvas : Control
         _lastPixelY = pixelY;
         _sampledColor = sampledColor;
         InvalidateVisual();
+        if (!stateChanged)
+        {
+            return;
+        }
+
         PointerImageChanged?.Invoke(
             this,
             new ImagePointerEventArgs(pixelX, pixelY, inside, sampledColor));
+    }
+
+    private void DrawMagnifier(DrawingContext context)
+    {
+        if (!_isMagnifierEnabled
+            || _bitmap is null
+            || _pixels is null
+            || !_lastPixelInside
+            || _sampledColor is not { } color
+            || _lastPointerCanvasPosition is not { } pointer)
+        {
+            return;
+        }
+
+        var layout = MagnifierLayoutCalculator.Create(
+            Bounds.Width,
+            Bounds.Height,
+            pointer.X,
+            pointer.Y,
+            _lastPixelX,
+            _lastPixelY,
+            _pixels.Width,
+            _pixels.Height,
+            _magnifierScale);
+        var cardRect = ToRect(layout.CardBounds);
+        var viewportRect = ToRect(layout.ViewportBounds);
+        var sourceRect = new Rect(
+            layout.SourceRegion.X,
+            layout.SourceRegion.Y,
+            layout.SourceRegion.Width,
+            layout.SourceRegion.Height);
+        var sourceDestinationRect = ToRect(layout.SourceDestinationBounds);
+
+        context.DrawRectangle(
+            MagnifierBackgroundBrush,
+            MagnifierBorderPen,
+            cardRect,
+            8,
+            8);
+        context.DrawRectangle(
+            MagnifierViewportBackgroundBrush,
+            MagnifierDividerPen,
+            viewportRect,
+            4,
+            4);
+        using (context.PushClip(viewportRect))
+        {
+            DrawCheckerboard(context, viewportRect);
+            context.DrawImage(_bitmap, sourceRect, sourceDestinationRect);
+            DrawMagnifierGrid(context, layout);
+        }
+
+        context.DrawRectangle(
+            null,
+            MagnifierCurrentPixelShadowPen,
+            ToRect(layout.CurrentPixelBounds));
+        context.DrawRectangle(
+            null,
+            MagnifierCurrentPixelPen,
+            ToRect(layout.CurrentPixelBounds));
+        DrawMagnifierCrosshair(context, layout);
+
+        var dividerY = viewportRect.Bottom + MagnifierLayoutCalculator.CardPadding;
+        context.DrawLine(
+            MagnifierDividerPen,
+            new Point(cardRect.X + MagnifierLayoutCalculator.CardPadding, dividerY),
+            new Point(cardRect.Right - MagnifierLayoutCalculator.CardPadding, dividerY));
+
+        var scaleText = new FormattedText(
+            $"{_magnifierScale}×",
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            10,
+            MagnifierMutedTextBrush);
+        var coordinateText = new FormattedText(
+            $"X {_lastPixelX}  Y {_lastPixelY}",
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            10,
+            MagnifierMutedTextBrush);
+        var hexText = new FormattedText(
+            color.Hex,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            11,
+            MagnifierTextBrush);
+        var footerTop = dividerY + 6;
+        context.DrawText(
+            scaleText,
+            new Point(cardRect.X + MagnifierLayoutCalculator.CardPadding, footerTop));
+        context.DrawText(
+            hexText,
+            new Point(
+                cardRect.X + MagnifierLayoutCalculator.CardPadding + scaleText.Width + 10,
+                footerTop - 0.5));
+        context.DrawText(
+            coordinateText,
+            new Point(
+                cardRect.Right - MagnifierLayoutCalculator.CardPadding - coordinateText.Width,
+                footerTop));
+    }
+
+    private static void DrawMagnifierGrid(
+        DrawingContext context,
+        MagnifierLayout layout)
+    {
+        var sampleBounds = ToRect(layout.SampleBounds);
+        var pixelSize = layout.CurrentPixelBounds.Width;
+        for (var index = 0; index <= layout.SamplePixelCount; index++)
+        {
+            var x = sampleBounds.X + (index * pixelSize);
+            context.DrawLine(
+                MagnifierGridPen,
+                new Point(x, sampleBounds.Y),
+                new Point(x, sampleBounds.Bottom));
+
+            var y = sampleBounds.Y + (index * pixelSize);
+            context.DrawLine(
+                MagnifierGridPen,
+                new Point(sampleBounds.X, y),
+                new Point(sampleBounds.Right, y));
+        }
+    }
+
+    private void DrawMagnifierCrosshair(
+        DrawingContext context,
+        MagnifierLayout layout)
+    {
+        const double armLength = 16;
+        const double centerGap = 3;
+        var x = layout.CrosshairX;
+        var y = layout.CrosshairY;
+
+        DrawCrosshairLine(
+            context,
+            new Point(x - armLength, y),
+            new Point(x - centerGap, y));
+        DrawCrosshairLine(
+            context,
+            new Point(x + centerGap, y),
+            new Point(x + armLength, y));
+        DrawCrosshairLine(
+            context,
+            new Point(x, y - armLength),
+            new Point(x, y - centerGap));
+        DrawCrosshairLine(
+            context,
+            new Point(x, y + centerGap),
+            new Point(x, y + armLength));
+    }
+
+    private static void DrawCrosshairLine(
+        DrawingContext context,
+        Point start,
+        Point end)
+    {
+        context.DrawLine(MagnifierCrosshairShadowPen, start, end);
+        context.DrawLine(MagnifierCrosshairPen, start, end);
+    }
+
+    private static Rect ToRect(MagnifierLayoutRect rect)
+    {
+        return new Rect(rect.X, rect.Y, rect.Width, rect.Height);
     }
 
     private static void DrawCheckerboard(DrawingContext context, Rect clip)
@@ -698,7 +935,8 @@ public sealed class ImageCanvas : Control
     {
         Cursor = _isPanning
             ? PanningCursor
-            : (_isMeasurementEnabled || _isEyedropperEnabled) && _bitmap is not null
+            : (_isMeasurementEnabled || _isEyedropperEnabled || _isMagnifierEnabled)
+                && _bitmap is not null
                 ? MeasuringCursor
                 : Cursor.Default;
     }

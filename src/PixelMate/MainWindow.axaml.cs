@@ -54,6 +54,7 @@ public partial class MainWindow : Window
         ImageCanvas.ColorPicked += ImageCanvas_ColorPicked;
         KeyDown += MainWindow_KeyDown;
         Closed += MainWindow_Closed;
+        UpdateMagnifierScaleControls();
     }
 
     private async void OpenImage_Click(object? sender, RoutedEventArgs e)
@@ -173,6 +174,21 @@ public partial class MainWindow : Window
     private void MagnifierTool_Click(object? sender, RoutedEventArgs e)
     {
         SetActiveTool(ToolMode.Magnifier);
+    }
+
+    private void Magnifier8_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMagnifierScale(8);
+    }
+
+    private void Magnifier12_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMagnifierScale(12);
+    }
+
+    private void Magnifier16_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMagnifierScale(16);
     }
 
     private async void CopyMeasurements_Click(object? sender, RoutedEventArgs e)
@@ -349,7 +365,10 @@ public partial class MainWindow : Window
         MagnifierToolButton.IsChecked = tool == ToolMode.Magnifier;
         ImageCanvas.SetMeasurementEnabled(tool == ToolMode.Measure);
         ImageCanvas.SetEyedropperEnabled(tool == ToolMode.Eyedropper);
-        if (tool != ToolMode.Eyedropper)
+        ImageCanvas.SetMagnifierEnabled(tool == ToolMode.Magnifier);
+        MagnifierScalePanel.IsVisible = tool == ToolMode.Magnifier;
+        UpdateMagnifierScaleControls();
+        if (tool != ToolMode.Eyedropper && tool != ToolMode.Magnifier)
         {
             UpdateSampledColor(null);
         }
@@ -359,19 +378,35 @@ public partial class MainWindow : Window
             {
                 ToolMode.Measure => "左键拖动测量；按住 Shift 锁定水平或垂直",
                 ToolMode.Eyedropper => "移动鼠标读取颜色，左键复制 HEX；状态栏可复制 RGB",
-                ToolMode.Magnifier => "已选择放大镜",
+                ToolMode.Magnifier => "移动鼠标检查像素；像素网格、中心像素和 HEX 显示在指针附近",
                 _ => string.Empty
             },
             false);
     }
 
+    private void SetMagnifierScale(int scale)
+    {
+        ImageCanvas.SetMagnifierScale(scale);
+        UpdateMagnifierScaleControls();
+        ImageCanvas.Focus();
+    }
+
+    private void UpdateMagnifierScaleControls()
+    {
+        Magnifier8Button.IsChecked = ImageCanvas.MagnifierScale == 8;
+        Magnifier12Button.IsChecked = ImageCanvas.MagnifierScale == 12;
+        Magnifier16Button.IsChecked = ImageCanvas.MagnifierScale == 16;
+    }
+
     private void UpdateSampledColor(PixelColor? color)
     {
         _sampledColor = color;
-        var hasColor = color.HasValue && _activeTool == ToolMode.Eyedropper;
-        EyedropperActionsPanel.IsVisible = hasColor;
-        CopySampledHexButton.IsEnabled = hasColor;
-        CopySampledRgbButton.IsEnabled = hasColor;
+        var hasColor = color.HasValue
+            && (_activeTool == ToolMode.Eyedropper || _activeTool == ToolMode.Magnifier);
+        var canCopy = hasColor && _activeTool == ToolMode.Eyedropper;
+        EyedropperActionsPanel.IsVisible = canCopy;
+        CopySampledHexButton.IsEnabled = canCopy;
+        CopySampledRgbButton.IsEnabled = canCopy;
 
         if (!hasColor || color is not { } sampled)
         {
