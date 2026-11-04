@@ -109,11 +109,16 @@ Windows PowerShell：
 
 ```text
 artifacts/PixelMate-win-x64/
+artifacts/PixelMate-1.0.0-win-x64.zip
 ```
 
 该目录采用 `win-x64`、Release、自包含发布，用户无需另装 .NET Runtime。
-发布脚本会检查主程序、图形原生库，并复制根目录 README 与
+发布脚本会清理旧输出、检查主程序、图形原生库，复制根目录 README 与
 [`docs/release-notes-1.0.0.md`](docs/release-notes-1.0.0.md) 发布说明。
+最后生成供 Windows 用户解压的 ZIP 发布包。
+
+Windows 实机验收步骤见
+[`docs/windows-acceptance-checklist.md`](docs/windows-acceptance-checklist.md)。
 
 当前 Windows 包已从 macOS 成功交叉发布并完成 PE 架构与依赖检查，但尚未在真实
 Windows 机器上运行。阶段 7 必须完成 Windows 启动、文件选择器、剪贴板、WebP、

@@ -13,6 +13,10 @@
   macOS 临时应用包使用 ICNS。
 - 增加 Windows `win-x64`、Release、自包含发布脚本，附带主程序及原生依赖完整性检查。
 - 发布目录自动移除无关调试符号，并附带根目录 README 和 1.0.0 发布说明。
+- 发布脚本关闭 Avalonia/.NET 遥测、清理旧发布目录，并直接生成不含
+  macOS 元数据的 Windows ZIP。
+- Windows 应用清单增加 `PerMonitorV2` 高 DPI 感知，避免系统整体位图拉伸。
+- 发布目录附带 Windows 实机验收清单。
 - 增加 Photoshop 风格的常用快捷键：
   - `M` 测量、`I` 取色、`Z` 放大镜。
   - 按住空格临时切换抓手，左键拖动平移。
@@ -38,6 +42,7 @@
 - `scripts/publish-windows-x64.sh`
 - `scripts/macos/Info.plist`
 - `scripts/run-macos.sh`
+- `src/PixelMate/app.manifest`
 - `src/PixelMate/App.axaml.cs`
 - `src/PixelMate/Program.cs`
 - `src/PixelMate/PixelMate.csproj`
@@ -93,7 +98,8 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
   -v:minimal
 ```
 
-结果：72 个测试通过，0 个失败，0 个跳过。
+初次结果为 72 个测试通过；阶段 8 追加回归后，当前代码共 83 个测试通过，
+0 个失败，0 个跳过。
 
 Windows 发布命令：
 
@@ -131,15 +137,18 @@ Windows 发布命令：
 
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
-- 压缩包大小：约 `46 MB`
+- 压缩包大小：`48,195,596` 字节
 - 解压后目录大小：约 `106 MB`
 - ZIP SHA-256：
-  `415fe7e18aafa5765bb91e8434ae2f34d212bd27ad7a9040239f593739d306ca`
+  `2fafe5cbe2c661b36d2305d1f067c881d143d0cc5acdc392bf24956d39bcc3fa`
 - `PixelMate.exe`：PE32+ GUI，x86-64。
 - `PixelMate.dll`：PE32+ .NET 程序集，x86-64。
 - `libSkiaSharp.dll`、`libHarfBuzzSharp.dll`、`av_libglesv2.dll`：x86-64 PE。
 - `.NET 10.0.14` 运行时已包含，发布目录无需用户另装 .NET Runtime。
 - 发布脚本已验证必需文件存在，压缩包完整性检查无错误。
+- ZIP 内已确认没有 `__MACOSX` 或 AppleDouble `._*` 元数据文件。
+- 已从 `PixelMate.exe` 内确认嵌入 `dpiAware=true/pm` 与
+  `dpiAwareness=PerMonitorV2` 清单。
 
 ## 七、已知问题
 
@@ -163,6 +172,8 @@ Windows 发布命令：
 阶段 7 的代码、图标、快捷键、macOS 回归、自动化测试和 Windows x64 交叉发布均已完成。
 请在真实 Windows x64 环境解压并运行
 `artifacts/PixelMate-1.0.0-win-x64.zip`，重点验证：
+
+详细步骤和记录模板已随包放入 `WINDOWS-ACCEPTANCE.md`。
 
 - 应用可启动，图标、名称和 `1.0.0` 版本正确。
 - 文件选择器可打开 PNG、JPG、BMP、WebP。

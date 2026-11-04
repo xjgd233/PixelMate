@@ -106,8 +106,10 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 压缩包大小：约 `46 MB`
 - ZIP SHA-256：
-  `8b4277323e035a60d69780ddedbd25aec02665d516f383785324891211dbce97`
+  `2fafe5cbe2c661b36d2305d1f067c881d143d0cc5acdc392bf24956d39bcc3fa`
 - Windows 主程序、Skia、HarfBuzz 和 OpenGL 原生库仍为 x86-64 PE。
+- 阶段 7 验收修正后已重新发布，发布包增加 Per-Monitor V2 高 DPI 清单和
+  `WINDOWS-ACCEPTANCE.md` 实机验收清单。
 - 本轮仍无法在真实 Windows x64 环境运行，平台验收状态不变。
 
 ## 七、已知问题
