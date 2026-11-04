@@ -56,6 +56,7 @@ public sealed class ImageCanvas : Control
     private static readonly IPen MeasurementPen = new Pen(MeasurementBrush, 1.1);
     private static readonly IPen MeasurementLabelBorderPen =
         new Pen(new SolidColorBrush(Color.Parse("#995E5140")), 1);
+    private static readonly Cursor PanReadyCursor = new(StandardCursorType.Hand);
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
     private static readonly Cursor MeasuringCursor = new(StandardCursorType.Cross);
     private static readonly Typeface MeasurementTypeface =
@@ -66,6 +67,7 @@ public sealed class ImageCanvas : Control
     private Bitmap? _bitmap;
     private ImagePixelBuffer? _pixels;
     private bool _isPanning;
+    private bool _isTemporaryPanEnabled;
     private bool _isMeasurementEnabled;
     private bool _isEyedropperEnabled;
     private bool _isMagnifierEnabled;
@@ -275,6 +277,17 @@ public sealed class ImageCanvas : Control
         InvalidateVisual();
     }
 
+    public void SetTemporaryPanEnabled(bool isEnabled)
+    {
+        if (_isTemporaryPanEnabled == isEnabled)
+        {
+            return;
+        }
+
+        _isTemporaryPanEnabled = isEnabled;
+        UpdateCursor();
+    }
+
     public void ClearMeasurements()
     {
         var hadMeasurements = _measurements.Count > 0 || _measurementDraft is not null;
@@ -360,7 +373,9 @@ public sealed class ImageCanvas : Control
         Focus();
 
         var point = e.GetCurrentPoint(this);
-        if (point.Properties.IsMiddleButtonPressed && _bitmap is not null)
+        if ((point.Properties.IsMiddleButtonPressed
+                || (point.Properties.IsLeftButtonPressed && _isTemporaryPanEnabled))
+            && _bitmap is not null)
         {
             _isPanning = true;
             _lastPointerPosition = point.Position;
@@ -943,10 +958,12 @@ public sealed class ImageCanvas : Control
     {
         Cursor = _isPanning
             ? PanningCursor
-            : (_isMeasurementEnabled || _isEyedropperEnabled || _isMagnifierEnabled)
-                && _bitmap is not null
-                ? MeasuringCursor
-                : Cursor.Default;
+            : _isTemporaryPanEnabled
+                ? PanReadyCursor
+                : (_isMeasurementEnabled || _isEyedropperEnabled || _isMagnifierEnabled)
+                    && _bitmap is not null
+                    ? MeasuringCursor
+                    : Cursor.Default;
     }
 }
 

@@ -5,9 +5,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/PixelMate.ico</ApplicationIcon>
+    <Product>PixelMate</Product>
+    <Description>轻量级图片像素测量和取色工具</Description>
+    <Company>PixelMate</Company>
+    <Authors>PixelMate</Authors>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
     <InternalsVisibleTo Include="PixelMate.Tests" />
   </ItemGroup>
 
@@ -16,9 +27,10 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.5" />
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
-      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport"
+                      Version="2.2.3"
+                      Condition="'$(Configuration)' == 'Debug'">
+      <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 </Project>

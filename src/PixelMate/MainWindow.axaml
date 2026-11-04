@@ -13,6 +13,7 @@
         MinWidth="760"
         MinHeight="500"
         WindowStartupLocation="CenterScreen"
+        Icon="/Assets/PixelMate.png"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="28"
         Background="#0B0B0D">
@@ -438,7 +439,8 @@
                             Click="OpenImage_Click"
                             Content="选择图片"
                             HorizontalAlignment="Center" />
-                    <TextBlock Text="PNG · JPG · BMP · WebP     ⌘O"
+                    <TextBlock x:Name="EmptyStateShortcutTextBlock"
+                               Text="PNG · JPG · BMP · WebP     ⌘O"
                                Foreground="{StaticResource TextTertiaryBrush}"
                                FontSize="11"
                                TextAlignment="Center"

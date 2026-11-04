@@ -2,10 +2,12 @@
 
 轻量级图片像素测量和取色工具。
 
-当前进度：阶段 0—6 已验收。下一阶段为 Windows x64 正式发布，尚未启动。
+当前进度：阶段 0—6 已验收；阶段 7（Windows x64 正式发布）处于待验收。
 
 说明：阶段 0—6 已于 2026-11-04 经用户验收。
 统一状态以 [`docs/phase-status.md`](docs/phase-status.md) 为准。
+
+当前版本：`1.0.0`
 
 ## 技术栈
 
@@ -20,6 +22,10 @@
 - 打开、测量、取色、放大镜工具入口及清晰单选状态。
 - 空画布引导、图片标题、尺寸、坐标、颜色和缩放状态展示。
 - `⌘O` / `Ctrl+O` 打开图片。
+- Photoshop 风格工具快捷键：`M` 测量、`I` 取色、`Z` 放大镜。
+- 按住空格临时切换抓手拖动；`⌘/Ctrl+0` 适应窗口，`⌘/Ctrl+1` 恢复 100%。
+- `⌘/Ctrl++`、`⌘/Ctrl+-` 缩放，`[` / `]` 调整放大镜倍率。
+- `⌘/Ctrl+C` 按当前工具复制测量结果或 HEX；`Delete` / `Backspace` 清除测量。
 - 通过文件选择器或拖拽打开 PNG、JPG、JPEG、BMP、WebP。
 - 鼠标滚轮以指针位置为中心缩放。
 - 中键拖动平移。
@@ -75,3 +81,31 @@ macOS 临时应用包启动方式：
 和 Computer Use 正常识别窗口。
 
 项目必须按 `.agents/skills/pixelmate-engineer/SKILL.md` 的八个阶段逐段开发并验收。
+
+## Windows x64 发布
+
+macOS 仓库根目录：
+
+```sh
+./scripts/publish-windows-x64.sh
+```
+
+Windows PowerShell：
+
+```powershell
+.\scripts\publish-windows-x64.ps1
+```
+
+输出目录：
+
+```text
+artifacts/PixelMate-win-x64/
+```
+
+该目录采用 `win-x64`、Release、自包含发布，用户无需另装 .NET Runtime。
+发布脚本会检查主程序、图形原生库，并复制根目录 README 与
+[`docs/release-notes-1.0.0.md`](docs/release-notes-1.0.0.md) 发布说明。
+
+当前 Windows 包已从 macOS 成功交叉发布并完成 PE 架构与依赖检查，但尚未在真实
+Windows 机器上运行。阶段 7 必须完成 Windows 启动、文件选择器、剪贴板、WebP、
+透明 PNG、高 DPI 和快捷键验证后才能验收。

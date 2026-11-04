@@ -46,6 +46,7 @@ public partial class MainWindow : Window
         new SolidColorBrush(Color.Parse("#66666D"));
     private static readonly IBrush LiveColorBorderBrush =
         new SolidColorBrush(Color.Parse("#8A8A92"));
+    private static readonly int[] MagnifierScales = [8, 12, 16];
 
     private readonly AppPreferences _preferences = AppPreferences.CreateDefault();
     private readonly SolidColorBrush _liveColorPreviewBrush =
@@ -68,7 +69,10 @@ public partial class MainWindow : Window
         ImageCanvas.MeasurementsChanged += ImageCanvas_MeasurementsChanged;
         ImageCanvas.ColorPicked += ImageCanvas_ColorPicked;
         KeyDown += MainWindow_KeyDown;
+        KeyUp += MainWindow_KeyUp;
+        Deactivated += MainWindow_Deactivated;
         Closed += MainWindow_Closed;
+        ConfigureShortcutHints();
         UpdateMagnifierScaleControls();
     }
 
@@ -282,23 +286,105 @@ public partial class MainWindow : Window
 
     private async void MainWindow_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.O
-            && (e.KeyModifiers.HasFlag(KeyModifiers.Meta)
-                || e.KeyModifiers.HasFlag(KeyModifiers.Control)))
+        var hasPrimaryModifier = HasPrimaryModifier(e.KeyModifiers);
+
+        if (e.Key == Key.Space
+            && e.KeyModifiers == KeyModifiers.None
+            && ImageCanvas.Transform.HasImage)
+        {
+            ImageCanvas.SetTemporaryPanEnabled(true);
+            e.Handled = true;
+            return;
+        }
+
+        if (hasPrimaryModifier && e.Key == Key.O)
         {
             e.Handled = true;
             await OpenImagePickerAsync();
             return;
         }
 
-        if (e.Key == Key.C
-            && ImageCanvas.HasMeasurements
-            && (e.KeyModifiers.HasFlag(KeyModifiers.Meta)
-                || e.KeyModifiers.HasFlag(KeyModifiers.Control)))
+        if (hasPrimaryModifier
+            && (e.Key == Key.OemPlus || e.Key == Key.Add))
         {
             e.Handled = true;
-            await CopyMeasurementsAsync();
+            ZoomIn_Click(sender, e);
             return;
+        }
+
+        if (hasPrimaryModifier
+            && (e.Key == Key.OemMinus || e.Key == Key.Subtract))
+        {
+            e.Handled = true;
+            ZoomOut_Click(sender, e);
+            return;
+        }
+
+        if (hasPrimaryModifier && (e.Key == Key.D0 || e.Key == Key.NumPad0))
+        {
+            e.Handled = true;
+            Fit_Click(sender, e);
+            return;
+        }
+
+        if (hasPrimaryModifier && (e.Key == Key.D1 || e.Key == Key.NumPad1))
+        {
+            e.Handled = true;
+            ActualSize_Click(sender, e);
+            return;
+        }
+
+        if (hasPrimaryModifier && e.Key == Key.C)
+        {
+            if (_sampledColor is { } color
+                && (_activeTool == ToolMode.Eyedropper
+                    || _activeTool == ToolMode.Magnifier))
+            {
+                e.Handled = true;
+                await CopyColorAsync(color, copyHex: true);
+            }
+            else if (ImageCanvas.HasMeasurements)
+            {
+                e.Handled = true;
+                await CopyMeasurementsAsync();
+            }
+
+            return;
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            ImageCanvas.CancelMeasurementDraft();
+            ImageCanvas.SetTemporaryPanEnabled(false);
+            return;
+        }
+
+        if (HasPlainToolModifier(e.KeyModifiers) && ImageCanvas.Transform.HasImage)
+        {
+            switch (e.Key)
+            {
+                case Key.M:
+                    e.Handled = true;
+                    SetActiveTool(ToolMode.Measure);
+                    return;
+                case Key.I:
+                    e.Handled = true;
+                    SetActiveTool(ToolMode.Eyedropper);
+                    return;
+                case Key.Z:
+                    e.Handled = true;
+                    SetActiveTool(ToolMode.Magnifier);
+                    return;
+                case Key.OemOpenBrackets:
+                    e.Handled = true;
+                    ChangeMagnifierScale(-1);
+                    return;
+                case Key.OemCloseBrackets:
+                    e.Handled = true;
+                    ChangeMagnifierScale(1);
+                    return;
+            }
         }
 
         if ((e.Key == Key.Back || e.Key == Key.Delete)
@@ -308,6 +394,51 @@ public partial class MainWindow : Window
             ImageCanvas.ClearMeasurements();
             SetStatusMessage("已清除全部测量", false);
         }
+    }
+
+    private void MainWindow_KeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Space && ImageCanvas.Transform.HasImage)
+        {
+            ImageCanvas.SetTemporaryPanEnabled(false);
+            e.Handled = true;
+        }
+    }
+
+    private void MainWindow_Deactivated(object? sender, EventArgs e)
+    {
+        ImageCanvas.SetTemporaryPanEnabled(false);
+    }
+
+    private static bool HasPrimaryModifier(KeyModifiers modifiers)
+    {
+        return modifiers.HasFlag(KeyModifiers.Meta)
+            || modifiers.HasFlag(KeyModifiers.Control);
+    }
+
+    private static bool HasPlainToolModifier(KeyModifiers modifiers)
+    {
+        return modifiers == KeyModifiers.None;
+    }
+
+    private void ChangeMagnifierScale(int direction)
+    {
+        if (_activeTool != ToolMode.Magnifier)
+        {
+            return;
+        }
+
+        var currentIndex = Array.IndexOf(MagnifierScales, ImageCanvas.MagnifierScale);
+        if (currentIndex < 0)
+        {
+            currentIndex = 1;
+        }
+
+        var nextIndex = Math.Clamp(
+            currentIndex + Math.Sign(direction),
+            0,
+            MagnifierScales.Length - 1);
+        SetMagnifierScale(MagnifierScales[nextIndex]);
     }
 
     private void OnDragOver(object? sender, DragEventArgs e)
@@ -407,6 +538,7 @@ public partial class MainWindow : Window
         MagnifierToolButton.IsEnabled = isEnabled;
         if (!isEnabled)
         {
+            ImageCanvas.SetTemporaryPanEnabled(false);
             SetActiveTool(ToolMode.None);
         }
     }
@@ -438,12 +570,13 @@ public partial class MainWindow : Window
         SetStatusMessage(
             tool switch
             {
-                ToolMode.Measure => "左键拖动测量；按住 Shift 锁定水平或垂直",
-                ToolMode.Eyedropper => "移动鼠标读取颜色，左键复制 HEX；状态栏可复制 RGB",
-                ToolMode.Magnifier => "移动鼠标检查像素；像素网格、中心像素和 HEX 显示在指针附近",
+                ToolMode.Measure => "测量：左键拖动；Shift 锁定方向；空格拖动平移",
+                ToolMode.Eyedropper => "取色：移动读取颜色；左键复制 HEX；空格拖动平移",
+                ToolMode.Magnifier => "放大镜：移动检查像素；[ ] 调整倍率；空格拖动平移",
                 _ => string.Empty
             },
             false);
+        ImageCanvas.Focus();
     }
 
     private void SetMagnifierScale(int scale)
@@ -509,7 +642,63 @@ public partial class MainWindow : Window
     private void MainWindow_Closed(object? sender, EventArgs e)
     {
         _isClosed = true;
+        ImageCanvas.SetTemporaryPanEnabled(false);
         _imageOpenCancellation?.Cancel();
         ImageCanvas.DisposeImage();
+    }
+
+    private void ConfigureShortcutHints()
+    {
+        var primary = OperatingSystem.IsMacOS() ? "⌘" : "Ctrl+";
+        var clearShortcut = OperatingSystem.IsMacOS() ? "⌫" : "Delete";
+
+        ToolTip.SetTip(
+            OpenImageButton,
+            $"打开图片 ({primary}O)");
+        ToolTip.SetTip(
+            MeasureToolButton,
+            "测量像素距离 (M)；按住 Shift 锁定水平或垂直");
+        ToolTip.SetTip(
+            EyedropperToolButton,
+            "吸取图片像素颜色 (I)；左键复制 HEX");
+        ToolTip.SetTip(
+            MagnifierToolButton,
+            "放大并检查单个像素 (Z)；[ ] 调整倍率");
+        ToolTip.SetTip(
+            FitButton,
+            $"图片适应窗口 ({primary}0)");
+        ToolTip.SetTip(
+            ActualSizeButton,
+            $"恢复 100% 原始尺寸 ({primary}1)");
+        ToolTip.SetTip(
+            ZoomOutButton,
+            $"缩小 ({primary}−)");
+        ToolTip.SetTip(
+            ZoomInButton,
+            $"放大 ({primary}+)");
+        ToolTip.SetTip(
+            Magnifier8Button,
+            "每像素放大 8 倍 ([ / ] 切换)");
+        ToolTip.SetTip(
+            Magnifier12Button,
+            "每像素放大 12 倍 ([ / ] 切换)");
+        ToolTip.SetTip(
+            Magnifier16Button,
+            "每像素放大 16 倍 ([ / ] 切换)");
+        ToolTip.SetTip(
+            CopyMeasurementsButton,
+            $"复制全部测量结果 ({primary}C)");
+        ToolTip.SetTip(
+            ClearMeasurementsButton,
+            $"清除全部测量 ({clearShortcut})");
+        ToolTip.SetTip(
+            CopySampledHexButton,
+            $"复制当前 HEX 颜色 ({primary}C)");
+        ToolTip.SetTip(
+            CopySampledRgbButton,
+            "复制当前 RGB 颜色");
+
+        EmptyStateShortcutTextBlock.Text =
+            $"PNG · JPG · BMP · WebP     {primary}O";
     }
 }

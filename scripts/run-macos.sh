@@ -30,5 +30,6 @@ mv "$macos_dir/PixelMate" "$macos_dir/PixelMate.Host"
 cp "$project_root/scripts/macos/pixelmate-launcher.sh" "$macos_dir/PixelMate"
 chmod +x "$macos_dir/PixelMate"
 cp "$project_root/scripts/macos/Info.plist" "$contents_dir/Info.plist"
+cp "$project_root/src/PixelMate/Assets/PixelMate.icns" "$contents_dir/PixelMate.icns"
 
 open "$app_bundle"
