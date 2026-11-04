@@ -3,9 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using PixelMate.Colors;
 using PixelMate.Imaging;
 using PixelMate.Measurement;
 using System.Globalization;
+using System.Runtime.InteropServices;
 
 namespace PixelMate.Controls;
 
@@ -21,6 +24,11 @@ public sealed class ImageCanvas : Control
     private static readonly IBrush MeasurementEndpointInnerBrush = new SolidColorBrush(Color.Parse("#FFE0A0"));
     private static readonly IBrush MeasurementLabelBackgroundBrush = new SolidColorBrush(Color.Parse("#F01A1A1E"));
     private static readonly IBrush MeasurementLabelTextBrush = new SolidColorBrush(Color.Parse("#FFF7EA"));
+    private static readonly IBrush PickerBackgroundBrush = new SolidColorBrush(Color.Parse("#F01A1A1E"));
+    private static readonly IBrush PickerTextBrush = new SolidColorBrush(Color.Parse("#F5F5F7"));
+    private static readonly IBrush PickerMutedTextBrush = new SolidColorBrush(Color.Parse("#AFAFB6"));
+    private static readonly IPen PickerBorderPen =
+        new Pen(new SolidColorBrush(Color.Parse("#5A5A62")), 1);
     private static readonly IPen MeasurementShadowPen = new Pen(MeasurementShadowBrush, 4);
     private static readonly IPen MeasurementPen = new Pen(MeasurementBrush, 1.6);
     private static readonly IPen MeasurementLabelBorderPen =
@@ -31,8 +39,10 @@ public sealed class ImageCanvas : Control
         new(new FontFamily("SF Mono, Menlo, Consolas, monospace"));
 
     private Bitmap? _bitmap;
+    private ImagePixelBuffer? _pixels;
     private bool _isPanning;
     private bool _isMeasurementEnabled;
+    private bool _isEyedropperEnabled;
     private bool _isMeasuring;
     private IPointer? _measurementPointer;
     private ImagePoint _measurementStart;
@@ -41,6 +51,8 @@ public sealed class ImageCanvas : Control
     private int _lastPixelX = -1;
     private int _lastPixelY = -1;
     private bool _lastPixelInside;
+    private PixelColor? _sampledColor;
+    private Point? _lastPointerCanvasPosition;
     private readonly List<PixelMeasurement> _measurements = [];
 
     public ImageCanvas()
@@ -56,22 +68,66 @@ public sealed class ImageCanvas : Control
 
     public event EventHandler? MeasurementsChanged;
 
+    public event EventHandler<ColorPickedEventArgs>? ColorPicked;
+
     public ImageCanvasTransform Transform { get; } = new();
 
     public IReadOnlyList<PixelMeasurement> Measurements => _measurements;
 
     public bool HasMeasurements => _measurements.Count > 0;
 
-    public void SetImage(Bitmap bitmap)
+    internal ImageSize SetImage(DecodedOriginalImage image)
     {
-        ArgumentNullException.ThrowIfNull(bitmap);
+        ArgumentNullException.ThrowIfNull(image);
+
+        var bitmap = new WriteableBitmap(
+            new PixelSize(image.Width, image.Height),
+            new Vector(96, 96),
+            PixelFormat.Bgra8888,
+            AlphaFormat.Unpremul);
+        try
+        {
+            using var framebuffer = bitmap.Lock();
+            if (framebuffer.Format != PixelFormat.Bgra8888)
+            {
+                throw new NotSupportedException("当前渲染后端不支持 BGRA8888 像素显示。");
+            }
+
+            var packedRowBytes = checked(image.Width * 4);
+            if (framebuffer.RowBytes < packedRowBytes)
+            {
+                throw new NotSupportedException("当前渲染后端的位图行宽无效。");
+            }
+
+            for (var row = 0; row < image.Height; row++)
+            {
+                Marshal.Copy(
+                    image.BgraPixels,
+                    row * image.RowBytes,
+                    IntPtr.Add(framebuffer.Address, row * framebuffer.RowBytes),
+                    packedRowBytes);
+            }
+        }
+        catch
+        {
+            bitmap.Dispose();
+            throw;
+        }
 
         var previous = _bitmap;
         _bitmap = bitmap;
+        _pixels = ImagePixelBuffer.FromOwnedBgra(
+            image.Width,
+            image.Height,
+            image.BgraPixels,
+            image.RowBytes);
         _lastPixelInside = false;
         _lastPixelX = -1;
         _lastPixelY = -1;
-        Transform.SetImage(new ImageSize(bitmap.PixelSize.Width, bitmap.PixelSize.Height));
+        _sampledColor = null;
+        _lastPointerCanvasPosition = null;
+        var imageSize = new ImageSize(image.Width, image.Height);
+        Transform.SetImage(imageSize);
 
         if (Transform.IsFitToViewport)
         {
@@ -82,6 +138,7 @@ public sealed class ImageCanvas : Control
         previous?.Dispose();
         InvalidateVisual();
         ViewChanged?.Invoke(this, EventArgs.Empty);
+        return imageSize;
     }
 
     public void ZoomBy(double factor)
@@ -119,6 +176,34 @@ public sealed class ImageCanvas : Control
         }
 
         UpdateCursor();
+    }
+
+    public void SetEyedropperEnabled(bool isEnabled)
+    {
+        if (_isEyedropperEnabled == isEnabled)
+        {
+            return;
+        }
+
+        _isEyedropperEnabled = isEnabled;
+        UpdateCursor();
+
+        if (isEnabled && _lastPointerCanvasPosition is { } position)
+        {
+            ReportPointerPosition(position);
+        }
+        else if (!isEnabled && _sampledColor is not null)
+        {
+            _sampledColor = null;
+            InvalidateVisual();
+            PointerImageChanged?.Invoke(
+                this,
+                new ImagePointerEventArgs(
+                    _lastPixelX,
+                    _lastPixelY,
+                    _lastPixelInside,
+                    null));
+        }
     }
 
     public void ClearMeasurements()
@@ -186,6 +271,8 @@ public sealed class ImageCanvas : Control
             {
                 DrawMeasurement(context, draft);
             }
+
+            DrawEyedropperPreview(context);
         }
     }
 
@@ -226,6 +313,21 @@ public sealed class ImageCanvas : Control
             e.Pointer.Capture(this);
             InvalidateVisual();
             e.Handled = true;
+            return;
+        }
+
+        if (_isEyedropperEnabled
+            && point.Properties.IsLeftButtonPressed
+            && Transform.TryCanvasToImagePixel(
+                new CanvasPoint(point.Position.X, point.Position.Y),
+                out var pixelX,
+                out var pixelY)
+            && _pixels?.TryGetPixel(pixelX, pixelY, out var color) == true)
+        {
+            _sampledColor = color;
+            InvalidateVisual();
+            ColorPicked?.Invoke(this, new ColorPickedEventArgs(color));
+            e.Handled = true;
         }
     }
 
@@ -250,6 +352,7 @@ public sealed class ImageCanvas : Control
             InvalidateVisual();
         }
 
+        _lastPointerCanvasPosition = position;
         ReportPointerPosition(position);
     }
 
@@ -310,9 +413,15 @@ public sealed class ImageCanvas : Control
     {
         base.OnPointerExited(e);
         _lastPixelInside = false;
+        _lastPointerCanvasPosition = null;
+        InvalidateVisual();
         PointerImageChanged?.Invoke(
             this,
-            new ImagePointerEventArgs(_lastPixelX, _lastPixelY, false));
+            new ImagePointerEventArgs(
+                _lastPixelX,
+                _lastPixelY,
+                false,
+                _sampledColor));
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -338,6 +447,9 @@ public sealed class ImageCanvas : Control
     {
         var bitmap = _bitmap;
         _bitmap = null;
+        _pixels = null;
+        _sampledColor = null;
+        _lastPointerCanvasPosition = null;
         ClearMeasurements();
         bitmap?.Dispose();
     }
@@ -348,8 +460,18 @@ public sealed class ImageCanvas : Control
             new CanvasPoint(position.X, position.Y),
             out var pixelX,
             out var pixelY);
+        PixelColor? sampledColor = null;
+        if (inside
+            && _isEyedropperEnabled
+            && _pixels?.TryGetPixel(pixelX, pixelY, out var color) == true)
+        {
+            sampledColor = color;
+        }
 
-        if (inside == _lastPixelInside && pixelX == _lastPixelX && pixelY == _lastPixelY)
+        if (inside == _lastPixelInside
+            && pixelX == _lastPixelX
+            && pixelY == _lastPixelY
+            && sampledColor == _sampledColor)
         {
             return;
         }
@@ -357,9 +479,11 @@ public sealed class ImageCanvas : Control
         _lastPixelInside = inside;
         _lastPixelX = pixelX;
         _lastPixelY = pixelY;
+        _sampledColor = sampledColor;
+        InvalidateVisual();
         PointerImageChanged?.Invoke(
             this,
-            new ImagePointerEventArgs(pixelX, pixelY, inside));
+            new ImagePointerEventArgs(pixelX, pixelY, inside, sampledColor));
     }
 
     private static void DrawCheckerboard(DrawingContext context, Rect clip)
@@ -461,21 +585,99 @@ public sealed class ImageCanvas : Control
             new Point(labelRect.X + horizontalPadding, labelRect.Y + verticalPadding));
     }
 
+    private void DrawEyedropperPreview(DrawingContext context)
+    {
+        if (!_isEyedropperEnabled
+            || _sampledColor is not { } color
+            || _lastPointerCanvasPosition is not { } pointer)
+        {
+            return;
+        }
+
+        var hexText = new FormattedText(
+            color.Hex,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            11,
+            PickerTextBrush);
+        var rgbText = new FormattedText(
+            color.Rgb,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            10,
+            PickerMutedTextBrush);
+
+        const double padding = 8;
+        const double swatchSize = 20;
+        const double gap = 8;
+        var textWidth = Math.Max(
+            hexText.WidthIncludingTrailingWhitespace,
+            rgbText.WidthIncludingTrailingWhitespace);
+        var cardWidth = swatchSize + gap + textWidth + (padding * 2);
+        const double cardHeight = 46;
+        var left = pointer.X + 16;
+        var top = pointer.Y + 16;
+        if (left + cardWidth > Bounds.Width - 6)
+        {
+            left = pointer.X - cardWidth - 16;
+        }
+
+        if (top + cardHeight > Bounds.Height - 6)
+        {
+            top = pointer.Y - cardHeight - 16;
+        }
+
+        left = Math.Clamp(left, 6, Math.Max(6, Bounds.Width - cardWidth - 6));
+        top = Math.Clamp(top, 6, Math.Max(6, Bounds.Height - cardHeight - 6));
+        var cardRect = new Rect(left, top, cardWidth, cardHeight);
+        context.DrawRectangle(PickerBackgroundBrush, PickerBorderPen, cardRect, 6, 6);
+
+        var swatchRect = new Rect(
+            cardRect.X + padding,
+            cardRect.Y + ((cardRect.Height - swatchSize) / 2),
+            swatchSize,
+            swatchSize);
+        DrawCheckerboard(context, swatchRect);
+        context.DrawRectangle(
+            new SolidColorBrush(Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue)),
+            PickerBorderPen,
+            swatchRect,
+            3,
+            3);
+
+        var textX = swatchRect.Right + gap;
+        context.DrawText(hexText, new Point(textX, cardRect.Y + 7));
+        context.DrawText(rgbText, new Point(textX, cardRect.Y + 24));
+    }
+
     private void UpdateCursor()
     {
         Cursor = _isPanning
             ? PanningCursor
-            : _isMeasurementEnabled && _bitmap is not null
+            : (_isMeasurementEnabled || _isEyedropperEnabled) && _bitmap is not null
                 ? MeasuringCursor
                 : Cursor.Default;
     }
 }
 
-public sealed class ImagePointerEventArgs(int pixelX, int pixelY, bool isInside) : EventArgs
+public sealed class ImagePointerEventArgs(
+    int pixelX,
+    int pixelY,
+    bool isInside,
+    PixelColor? color) : EventArgs
 {
     public int PixelX { get; } = pixelX;
 
     public int PixelY { get; } = pixelY;
 
     public bool IsInside { get; } = isInside;
+
+    public PixelColor? Color { get; } = color;
+}
+
+public sealed class ColorPickedEventArgs(PixelColor color) : EventArgs
+{
+    public PixelColor Color { get; } = color;
 }

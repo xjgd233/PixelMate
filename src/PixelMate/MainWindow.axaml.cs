@@ -3,8 +3,8 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using PixelMate.Colors;
 using PixelMate.Imaging;
 using PixelMate.Measurement;
 using PixelMate.Preferences;
@@ -39,6 +39,7 @@ public partial class MainWindow : Window
 
     private readonly AppPreferences _preferences = AppPreferences.CreateDefault();
     private ToolMode _activeTool;
+    private PixelColor? _sampledColor;
 
     public MainWindow()
     {
@@ -50,6 +51,7 @@ public partial class MainWindow : Window
         ImageCanvas.ViewChanged += ImageCanvas_ViewChanged;
         ImageCanvas.PointerImageChanged += ImageCanvas_PointerImageChanged;
         ImageCanvas.MeasurementsChanged += ImageCanvas_MeasurementsChanged;
+        ImageCanvas.ColorPicked += ImageCanvas_ColorPicked;
         KeyDown += MainWindow_KeyDown;
         Closed += MainWindow_Closed;
     }
@@ -95,17 +97,16 @@ public partial class MainWindow : Window
 
         try
         {
-            var bitmap = new Bitmap(filePath);
-            ImageCanvas.SetImage(bitmap);
+            var decodedImage = OriginalImageDecoder.Decode(filePath);
+            ImageCanvas.SetImage(decodedImage);
             _preferences.RememberDirectory(filePath);
 
             var fileName = Path.GetFileName(filePath);
             ImageNameTextBlock.Text = fileName;
-            ImageSizeTextBlock.Text =
-                $"{bitmap.PixelSize.Width} × {bitmap.PixelSize.Height}";
+            ImageSizeTextBlock.Text = $"{decodedImage.Width} × {decodedImage.Height}";
             EmptyStatePanel.IsVisible = false;
             PointerTextBlock.Text = "X —  Y —";
-            HexTextBlock.Text = "HEX —";
+            UpdateSampledColor(null);
             SetImageControlsEnabled(true);
             SetStatusMessage(string.Empty, false);
             Title = fileName;
@@ -148,6 +149,15 @@ public partial class MainWindow : Window
         PointerTextBlock.Text = e.IsInside
             ? $"X {e.PixelX}  Y {e.PixelY}"
             : "X —  Y —";
+        UpdateSampledColor(e.Color);
+    }
+
+    private async void ImageCanvas_ColorPicked(
+        object? sender,
+        Controls.ColorPickedEventArgs e)
+    {
+        UpdateSampledColor(e.Color);
+        await CopyColorAsync(e.Color, copyHex: true);
     }
 
     private void MeasureTool_Click(object? sender, RoutedEventArgs e)
@@ -174,6 +184,22 @@ public partial class MainWindow : Window
     {
         ImageCanvas.ClearMeasurements();
         SetStatusMessage("已清除全部测量", false);
+    }
+
+    private async void CopySampledHex_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_sampledColor is { } color)
+        {
+            await CopyColorAsync(color, copyHex: true);
+        }
+    }
+
+    private async void CopySampledRgb_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_sampledColor is { } color)
+        {
+            await CopyColorAsync(color, copyHex: false);
+        }
     }
 
     private async void MainWindow_KeyDown(object? sender, KeyEventArgs e)
@@ -322,16 +348,64 @@ public partial class MainWindow : Window
         EyedropperToolButton.IsChecked = tool == ToolMode.Eyedropper;
         MagnifierToolButton.IsChecked = tool == ToolMode.Magnifier;
         ImageCanvas.SetMeasurementEnabled(tool == ToolMode.Measure);
+        ImageCanvas.SetEyedropperEnabled(tool == ToolMode.Eyedropper);
+        if (tool != ToolMode.Eyedropper)
+        {
+            UpdateSampledColor(null);
+        }
 
         SetStatusMessage(
             tool switch
             {
                 ToolMode.Measure => "左键拖动测量，可连续绘制多条测量线",
-                ToolMode.Eyedropper => "已选择取色工具",
+                ToolMode.Eyedropper => "移动鼠标读取颜色，左键复制 HEX；状态栏可复制 RGB",
                 ToolMode.Magnifier => "已选择放大镜",
                 _ => string.Empty
             },
             false);
+    }
+
+    private void UpdateSampledColor(PixelColor? color)
+    {
+        _sampledColor = color;
+        var hasColor = color.HasValue && _activeTool == ToolMode.Eyedropper;
+        EyedropperActionsPanel.IsVisible = hasColor;
+        CopySampledHexButton.IsEnabled = hasColor;
+        CopySampledRgbButton.IsEnabled = hasColor;
+
+        if (!hasColor || color is not { } sampled)
+        {
+            ColorPreviewBorder.Background = new SolidColorBrush(Color.Parse("#4A4A4F"));
+            ColorPreviewBorder.BorderBrush = new SolidColorBrush(Color.Parse("#66666D"));
+            HexTextBlock.Text = "HEX —";
+            return;
+        }
+
+        ColorPreviewBorder.Background = new SolidColorBrush(
+            Color.FromArgb(sampled.Alpha, sampled.Red, sampled.Green, sampled.Blue));
+        ColorPreviewBorder.BorderBrush = new SolidColorBrush(Color.Parse("#8A8A92"));
+        HexTextBlock.Text = sampled.Hex;
+    }
+
+    private async Task CopyColorAsync(PixelColor color, bool copyHex)
+    {
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is null)
+        {
+            SetStatusMessage("当前系统剪贴板不可用", true);
+            return;
+        }
+
+        try
+        {
+            var value = copyHex ? color.Hex : color.Rgb;
+            await clipboard.SetTextAsync(value);
+            SetStatusMessage($"已复制 {value}", false);
+        }
+        catch (Exception)
+        {
+            SetStatusMessage(copyHex ? "复制 HEX 失败" : "复制 RGB 失败", true);
+        }
     }
 
     private void MainWindow_Closed(object? sender, EventArgs e)

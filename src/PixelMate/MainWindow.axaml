@@ -463,6 +463,21 @@
                 <StackPanel Grid.Column="4"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
+                    <StackPanel x:Name="EyedropperActionsPanel"
+                                Orientation="Horizontal"
+                                Spacing="1"
+                                IsVisible="False">
+                        <Button x:Name="CopySampledHexButton"
+                                Classes="statusAction"
+                                Click="CopySampledHex_Click"
+                                Content="HEX"
+                                ToolTip.Tip="复制当前 HEX 颜色" />
+                        <Button x:Name="CopySampledRgbButton"
+                                Classes="statusAction"
+                                Click="CopySampledRgb_Click"
+                                Content="RGB"
+                                ToolTip.Tip="复制当前 RGB 颜色" />
+                    </StackPanel>
                     <Border Classes="statusSeparator" />
                     <Border x:Name="ColorPreviewBorder"
                             Width="10"
