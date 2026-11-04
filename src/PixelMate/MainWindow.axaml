@@ -3,213 +3,453 @@
         xmlns:controls="using:PixelMate.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d"
+        d:DesignWidth="960"
+        d:DesignHeight="620"
         x:Class="PixelMate.MainWindow"
         Title="PixelMate"
         Width="1040"
         Height="700"
-        MinWidth="680"
-        MinHeight="460"
-        Background="#101217">
+        MinWidth="760"
+        MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="28"
+        Background="#0B0B0D">
+    <Window.Resources>
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#0B0B0D" />
+        <SolidColorBrush x:Key="BarBackgroundBrush" Color="#1C1C1F" />
+        <SolidColorBrush x:Key="BarBorderBrush" Color="#333338" />
+        <SolidColorBrush x:Key="ControlFillBrush" Color="#2B2B2F" />
+        <SolidColorBrush x:Key="ControlHoverBrush" Color="#39393E" />
+        <SolidColorBrush x:Key="ControlPressedBrush" Color="#252529" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F2F2F4" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A6A6AC" />
+        <SolidColorBrush x:Key="TextTertiaryBrush" Color="#74747B" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#0A84FF" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#3B9BFF" />
+    </Window.Resources>
+
     <Window.Styles>
-        <Style Selector="Button.toolbar">
-            <Setter Property="MinHeight" Value="32" />
-            <Setter Property="Padding" Value="12,5" />
+        <Style Selector="Button.barAction">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="9,4" />
             <Setter Property="CornerRadius" Value="7" />
-            <Setter Property="Background" Value="#252931" />
-            <Setter Property="Foreground" Value="#E7E9ED" />
-            <Setter Property="BorderBrush" Value="#363B45" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="FontSize" Value="13" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
-        <Style Selector="Button.toolbar:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#323741" />
+        <Style Selector="Button.barAction:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{StaticResource TextPrimaryBrush}" />
         </Style>
-        <Style Selector="Button.toolbar:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1D2026" />
+        <Style Selector="Button.barAction:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ControlPressedBrush}" />
         </Style>
-        <Style Selector="Button.icon">
-            <Setter Property="MinWidth" Value="32" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="FontSize" Value="18" />
+        <Style Selector="Button.barAction:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.38" />
         </Style>
-        <Style Selector="TextBlock.status">
-            <Setter Property="Foreground" Value="#AEB3BD" />
+
+        <Style Selector="ToggleButton.toolChoice">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="MinWidth" Value="72" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ToggleButton.toolChoice:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.toolChoice:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ControlFillBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.toolChoice:checked:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.toolChoice:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.34" />
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="15,4" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+            <Setter Property="TextElement.Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#0070D8" />
+        </Style>
+
+        <Style Selector="TextBlock.statusLabel">
+            <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+            <Setter Property="FontSize" Value="11" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="TextBlock.statusValue">
-            <Setter Property="Foreground" Value="#E2E5EA" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.statusMono">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="FontSize" Value="11" />
             <Setter Property="FontFamily" Value="SF Mono, Menlo, Consolas, monospace" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.statusSeparator">
+            <Setter Property="Width" Value="1" />
+            <Setter Property="Height" Value="12" />
+            <Setter Property="Margin" Value="11,0" />
+            <Setter Property="Background" Value="#3A3A3F" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="54,*,32">
+    <Grid RowDefinitions="28,52,*,30">
         <Border Grid.Row="0"
-                Padding="14,0"
-                Background="#191C22"
-                BorderBrush="#2A2E36"
+                Background="{StaticResource BarBackgroundBrush}">
+            <TextBlock x:Name="WindowTitleTextBlock"
+                       Text="未打开图片"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsHitTestVisible="False" />
+        </Border>
+
+        <!--
+            Keep the toolbar to three logical groups. Tool symbols remain quiet until
+            selected, following the macOS toolbar guidance to let content define color.
+        -->
+        <Border Grid.Row="1"
+                Padding="12,0"
+                Background="{StaticResource BarBackgroundBrush}"
+                BorderBrush="{StaticResource BarBorderBrush}"
                 BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="Auto,*,Auto">
+            <Grid ColumnDefinitions="*,Auto,*">
                 <StackPanel Grid.Column="0"
                             Orientation="Horizontal"
-                            Spacing="10"
+                            Spacing="2"
                             VerticalAlignment="Center">
-                    <Border Width="28"
-                            Height="28"
-                            CornerRadius="7"
-                            Background="#D9FF5A">
-                        <TextBlock Text="P"
-                                   Foreground="#15170E"
-                                   FontWeight="Bold"
-                                   FontSize="15"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="PixelMate"
-                               Foreground="#F4F5F7"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               VerticalAlignment="Center" />
-                    <Border Width="1"
-                            Height="20"
-                            Margin="4,0"
-                            Background="#353A43" />
-                    <Button Classes="toolbar"
+                    <Button x:Name="OpenImageButton"
+                            Classes="barAction"
                             Click="OpenImage_Click"
-                            ToolTip.Tip="打开 PNG、JPG、BMP 或 WebP 图片">
-                        <TextBlock Text="打开图片" />
+                            ToolTip.Tip="打开图片 (⌘O)">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <Canvas Width="18" Height="18">
+                                <Path Data="M2.5,5.25 L7.2,5.25 L9,7.25 L15.5,7.25 L15.5,14.25 L2.5,14.25 Z"
+                                      Stroke="#DEDEE2"
+                                      StrokeThickness="1.4"
+                                      StrokeJoin="Round" />
+                                <Path Data="M4.25,9 L13.75,9"
+                                      Stroke="#DEDEE2"
+                                      StrokeThickness="1.4"
+                                      StrokeLineCap="Round" />
+                            </Canvas>
+                            <TextBlock Text="打开"
+                                       FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                 </StackPanel>
 
-                <TextBlock Grid.Column="1"
-                           x:Name="ToolbarHintTextBlock"
-                           Text="滚轮缩放 · 中键拖动平移"
-                           Foreground="#777E8A"
-                           FontSize="12"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
+                <Border Grid.Column="1"
+                        Padding="3"
+                        CornerRadius="9"
+                        Background="#17171A"
+                        BorderBrush="#303035"
+                        BorderThickness="1">
+                    <StackPanel Orientation="Horizontal" Spacing="1">
+                        <ToggleButton x:Name="MeasureToolButton"
+                                      Classes="toolChoice"
+                                      Click="MeasureTool_Click"
+                                      IsEnabled="False"
+                                      ToolTip.Tip="测量像素距离">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Canvas Width="17" Height="17">
+                                    <Path Data="M4,13 L13,4"
+                                          Stroke="#D8D8DD"
+                                          StrokeThickness="1.5"
+                                          StrokeLineCap="Round" />
+                                    <Ellipse Canvas.Left="2.5"
+                                             Canvas.Top="11.5"
+                                             Width="3"
+                                             Height="3"
+                                             Fill="#D8D8DD" />
+                                    <Ellipse Canvas.Left="11.5"
+                                             Canvas.Top="2.5"
+                                             Width="3"
+                                             Height="3"
+                                             Fill="#D8D8DD" />
+                                </Canvas>
+                                <TextBlock Text="测量"
+                                           FontSize="12"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </ToggleButton>
+
+                        <ToggleButton x:Name="EyedropperToolButton"
+                                      Classes="toolChoice"
+                                      Click="EyedropperTool_Click"
+                                      IsEnabled="False"
+                                      ToolTip.Tip="吸取图片像素颜色">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Canvas Width="17" Height="17">
+                                    <Path Data="M4,14 L5.2,10.4 L11.5,4.1 C12.3,3.3 13.7,3.3 14.5,4.1 L14.9,4.5 C15.7,5.3 15.7,6.7 14.9,7.5 L8.6,13.8 Z M10.6,5 L14,8.4"
+                                          Stroke="#D8D8DD"
+                                          StrokeThickness="1.35"
+                                          StrokeJoin="Round"
+                                          StrokeLineCap="Round" />
+                                </Canvas>
+                                <TextBlock Text="取色"
+                                           FontSize="12"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </ToggleButton>
+
+                        <ToggleButton x:Name="MagnifierToolButton"
+                                      Classes="toolChoice"
+                                      Click="MagnifierTool_Click"
+                                      IsEnabled="False"
+                                      ToolTip.Tip="放大并检查单个像素">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Canvas Width="17" Height="17">
+                                    <Ellipse Canvas.Left="2.5"
+                                             Canvas.Top="2.5"
+                                             Width="9.5"
+                                             Height="9.5"
+                                             Stroke="#D8D8DD"
+                                             StrokeThickness="1.4" />
+                                    <Path Data="M11,11 L15,15"
+                                          Stroke="#D8D8DD"
+                                          StrokeThickness="1.7"
+                                          StrokeLineCap="Round" />
+                                    <Path Data="M7.25,4.8 L7.25,9.8 M4.75,7.3 L9.75,7.3"
+                                          Stroke="#D8D8DD"
+                                          StrokeThickness="1"
+                                          StrokeLineCap="Round" />
+                                </Canvas>
+                                <TextBlock Text="放大镜"
+                                           FontSize="12"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </ToggleButton>
+                    </StackPanel>
+                </Border>
 
                 <StackPanel Grid.Column="2"
                             Orientation="Horizontal"
-                            Spacing="6"
+                            Spacing="2"
+                            HorizontalAlignment="Right"
                             VerticalAlignment="Center">
                     <Button x:Name="FitButton"
-                            Classes="toolbar"
+                            Classes="barAction"
                             Click="Fit_Click"
-                            Content="适应窗口"
-                            IsEnabled="False" />
+                            IsEnabled="False"
+                            ToolTip.Tip="图片适应窗口">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Canvas Width="17" Height="17">
+                                <Path Data="M3,6.5 L3,3 L6.5,3 M10.5,3 L14,3 L14,6.5 M14,10.5 L14,14 L10.5,14 M6.5,14 L3,14 L3,10.5"
+                                      Stroke="#D8D8DD"
+                                      StrokeThickness="1.3"
+                                      StrokeJoin="Round"
+                                      StrokeLineCap="Round" />
+                            </Canvas>
+                            <TextBlock Text="适应"
+                                       FontSize="12"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                     <Button x:Name="ActualSizeButton"
-                            Classes="toolbar"
+                            Classes="barAction"
                             Click="ActualSize_Click"
-                            Content="100%"
-                            IsEnabled="False" />
-                    <Border Width="1"
-                            Height="20"
-                            Margin="4,0"
-                            Background="#353A43" />
+                            Content="1:1"
+                            IsEnabled="False"
+                            ToolTip.Tip="恢复 100% 原始尺寸" />
+                    <Border Classes="statusSeparator" />
                     <Button x:Name="ZoomOutButton"
-                            Classes="toolbar icon"
+                            Classes="barAction"
+                            Width="28"
+                            Padding="0"
                             Click="ZoomOut_Click"
                             Content="−"
+                            FontSize="17"
                             IsEnabled="False"
                             ToolTip.Tip="缩小" />
                     <TextBlock x:Name="ZoomTextBlock"
+                               Width="50"
                                Text="—"
-                               MinWidth="54"
-                               Foreground="#E7E9ED"
-                               FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontFamily="SF Mono, Menlo, Consolas, monospace"
+                               FontSize="11"
                                TextAlignment="Center"
                                VerticalAlignment="Center" />
                     <Button x:Name="ZoomInButton"
-                            Classes="toolbar icon"
+                            Classes="barAction"
+                            Width="28"
+                            Padding="0"
                             Click="ZoomIn_Click"
                             Content="+"
+                            FontSize="16"
                             IsEnabled="False"
                             ToolTip.Tip="放大" />
                 </StackPanel>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1"
-                Background="#101217"
-                BorderBrush="#272B33"
+        <Border Grid.Row="2"
+                Background="{StaticResource WindowBackgroundBrush}"
+                BorderBrush="#27272B"
                 BorderThickness="0,0,0,1">
             <Grid>
                 <controls:ImageCanvas x:Name="ImageCanvas" />
 
-                <Border x:Name="EmptyStatePanel"
-                        MaxWidth="430"
-                        Padding="28,24"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Background="#1A1D23"
-                        BorderBrush="#30343C"
-                        BorderThickness="1"
-                        CornerRadius="12"
-                        IsHitTestVisible="False">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="拖入一张图片"
-                                   Foreground="#F0F2F4"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="支持 PNG、JPG、JPEG、BMP 与 WebP"
-                                   Foreground="#969DA8"
-                                   FontSize="13"
-                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="也可以点击左上角“打开图片”"
-                                   Foreground="#6F7681"
-                                   FontSize="12"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Border>
+                <StackPanel x:Name="EmptyStatePanel"
+                            MaxWidth="360"
+                            Spacing="11"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="True">
+                    <Border Width="56"
+                            Height="56"
+                            CornerRadius="14"
+                            Background="#1E1E22"
+                            BorderBrush="#38383E"
+                            BorderThickness="1"
+                            HorizontalAlignment="Center">
+                        <Canvas Width="27" Height="27">
+                            <Rectangle Canvas.Left="3"
+                                       Canvas.Top="5"
+                                       Width="21"
+                                       Height="17"
+                                       RadiusX="3"
+                                       RadiusY="3"
+                                       Stroke="#A9A9B0"
+                                       StrokeThickness="1.4" />
+                            <Ellipse Canvas.Left="16.5"
+                                     Canvas.Top="8.5"
+                                     Width="3.2"
+                                     Height="3.2"
+                                     Fill="#A9A9B0" />
+                            <Path Data="M5,19 L11,13.5 L15,17 L18,10.5 L22,19"
+                                  Stroke="#A9A9B0"
+                                  StrokeThickness="1.4"
+                                  StrokeJoin="Round"
+                                  StrokeLineCap="Round" />
+                        </Canvas>
+                    </Border>
+                    <TextBlock Text="打开一张图片"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="将图片拖到这里，或从本地文件中选取"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="13"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center" />
+                    <Button Classes="primary"
+                            Margin="0,5,0,0"
+                            Click="OpenImage_Click"
+                            Content="选择图片"
+                            HorizontalAlignment="Center" />
+                    <TextBlock Text="PNG · JPG · BMP · WebP     ⌘O"
+                               Foreground="{StaticResource TextTertiaryBrush}"
+                               FontSize="11"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
             </Grid>
         </Border>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 Padding="12,0"
-                Background="#171A1F">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto">
-                <TextBlock x:Name="ImageNameTextBlock"
-                           Grid.Column="0"
-                           Classes="statusValue"
-                           Text="未打开图片"
-                           MaxWidth="260"
-                           TextTrimming="CharacterEllipsis" />
-                <TextBlock x:Name="ImageSizeTextBlock"
-                           Grid.Column="1"
-                           Classes="status"
-                           Margin="12,0,0,0"
-                           Text="— × —" />
+                Background="#19191C"
+                BorderBrush="#29292D"
+                BorderThickness="0,0,0,0">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            Spacing="0"
+                            VerticalAlignment="Center">
+                    <TextBlock x:Name="ImageNameTextBlock"
+                               Classes="statusValue"
+                               Text="未打开图片"
+                               MaxWidth="260"
+                               TextTrimming="CharacterEllipsis" />
+                    <Border Classes="statusSeparator" />
+                    <TextBlock x:Name="ImageSizeTextBlock"
+                               Classes="statusMono"
+                               Text="— × —" />
+                </StackPanel>
+
                 <TextBlock x:Name="StatusMessageTextBlock"
-                           Grid.Column="2"
-                           Classes="status"
-                           Margin="18,0"
+                           Grid.Column="1"
+                           Classes="statusLabel"
+                           Margin="14,0,0,0"
                            Text=""
-                           TextTrimming="CharacterEllipsis" />
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center" />
+
                 <TextBlock x:Name="PointerTextBlock"
-                           Grid.Column="3"
-                           Classes="statusValue"
-                           MinWidth="104"
-                           Text="X —  Y —"
-                           TextAlignment="Right" />
-                <TextBlock x:Name="HexTextBlock"
-                           Grid.Column="4"
-                           Classes="status"
-                           Margin="18,0,0,0"
-                           MinWidth="80"
-                           Text="HEX —"
-                           TextAlignment="Right" />
-                <TextBlock x:Name="StatusZoomTextBlock"
-                           Grid.Column="5"
-                           Classes="statusValue"
-                           Margin="18,0,0,0"
-                           MinWidth="56"
-                           Text="—"
-                           TextAlignment="Right" />
+                           Grid.Column="2"
+                           Classes="statusMono"
+                           Text="X —   Y —"
+                           TextAlignment="Right"
+                           VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="3"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Border Classes="statusSeparator" />
+                    <Border x:Name="ColorPreviewBorder"
+                            Width="10"
+                            Height="10"
+                            Margin="0,0,7,0"
+                            CornerRadius="2"
+                            Background="#4A4A4F"
+                            BorderBrush="#66666D"
+                            BorderThickness="1" />
+                    <TextBlock x:Name="HexTextBlock"
+                               Classes="statusMono"
+                               MinWidth="70"
+                               Text="HEX —" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="4"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Border Classes="statusSeparator" />
+                    <TextBlock Text="缩放"
+                               Classes="statusLabel"
+                               Margin="0,0,6,0" />
+                    <TextBlock x:Name="StatusZoomTextBlock"
+                               Classes="statusMono"
+                               MinWidth="44"
+                               Text="—"
+                               TextAlignment="Right" />
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

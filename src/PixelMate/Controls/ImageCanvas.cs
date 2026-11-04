@@ -9,10 +9,10 @@ namespace PixelMate.Controls;
 
 public sealed class ImageCanvas : Control
 {
-    private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#101217"));
-    private static readonly IBrush CheckerLightBrush = new SolidColorBrush(Color.Parse("#2A2D34"));
-    private static readonly IBrush CheckerDarkBrush = new SolidColorBrush(Color.Parse("#24272E"));
-    private static readonly IBrush ImageBorderBrush = new SolidColorBrush(Color.Parse("#4A4F59"));
+    private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#0B0B0D"));
+    private static readonly IBrush CheckerLightBrush = new SolidColorBrush(Color.Parse("#202024"));
+    private static readonly IBrush CheckerDarkBrush = new SolidColorBrush(Color.Parse("#18181B"));
+    private static readonly IBrush ImageBorderBrush = new SolidColorBrush(Color.Parse("#4B4B52"));
     private static readonly IPen ImageBorderPen = new Pen(ImageBorderBrush, 1);
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
 

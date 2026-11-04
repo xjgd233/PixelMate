@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using PixelMate.Imaging;
@@ -11,6 +12,14 @@ namespace PixelMate;
 
 public partial class MainWindow : Window
 {
+    private enum ToolMode
+    {
+        None,
+        Measure,
+        Eyedropper,
+        Magnifier
+    }
+
     private static readonly IReadOnlyList<FilePickerFileType> ImageFileTypes =
     [
         new("图片")
@@ -27,6 +36,7 @@ public partial class MainWindow : Window
     ];
 
     private readonly AppPreferences _preferences = AppPreferences.CreateDefault();
+    private ToolMode _activeTool;
 
     public MainWindow()
     {
@@ -37,10 +47,16 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DropEvent, OnDrop);
         ImageCanvas.ViewChanged += ImageCanvas_ViewChanged;
         ImageCanvas.PointerImageChanged += ImageCanvas_PointerImageChanged;
+        KeyDown += MainWindow_KeyDown;
         Closed += MainWindow_Closed;
     }
 
     private async void OpenImage_Click(object? sender, RoutedEventArgs e)
+    {
+        await OpenImagePickerAsync();
+    }
+
+    private async Task OpenImagePickerAsync()
     {
         IStorageFolder? suggestedStartLocation = null;
         if (!string.IsNullOrWhiteSpace(_preferences.LastOpenDirectory)
@@ -89,8 +105,8 @@ public partial class MainWindow : Window
             HexTextBlock.Text = "HEX —";
             SetImageControlsEnabled(true);
             SetStatusMessage(string.Empty, false);
-            Title = $"{fileName} — PixelMate";
-            ToolbarHintTextBlock.Text = "滚轮缩放 · 中键拖动平移";
+            Title = fileName;
+            WindowTitleTextBlock.Text = fileName;
             UpdateViewStatus();
         }
         catch (Exception)
@@ -129,6 +145,32 @@ public partial class MainWindow : Window
         PointerTextBlock.Text = e.IsInside
             ? $"X {e.PixelX}  Y {e.PixelY}"
             : "X —  Y —";
+    }
+
+    private void MeasureTool_Click(object? sender, RoutedEventArgs e)
+    {
+        SetActiveTool(ToolMode.Measure);
+    }
+
+    private void EyedropperTool_Click(object? sender, RoutedEventArgs e)
+    {
+        SetActiveTool(ToolMode.Eyedropper);
+    }
+
+    private void MagnifierTool_Click(object? sender, RoutedEventArgs e)
+    {
+        SetActiveTool(ToolMode.Magnifier);
+    }
+
+    private async void MainWindow_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.O
+            && (e.KeyModifiers.HasFlag(KeyModifiers.Meta)
+                || e.KeyModifiers.HasFlag(KeyModifiers.Control)))
+        {
+            e.Handled = true;
+            await OpenImagePickerAsync();
+        }
     }
 
     private void OnDragOver(object? sender, DragEventArgs e)
@@ -178,14 +220,39 @@ public partial class MainWindow : Window
         ActualSizeButton.IsEnabled = isEnabled;
         ZoomOutButton.IsEnabled = isEnabled;
         ZoomInButton.IsEnabled = isEnabled;
+        MeasureToolButton.IsEnabled = isEnabled;
+        EyedropperToolButton.IsEnabled = isEnabled;
+        MagnifierToolButton.IsEnabled = isEnabled;
+        if (!isEnabled)
+        {
+            SetActiveTool(ToolMode.None);
+        }
     }
 
     private void SetStatusMessage(string message, bool isError)
     {
         StatusMessageTextBlock.Text = message;
         StatusMessageTextBlock.Foreground = isError
-            ? Avalonia.Media.Brushes.Salmon
-            : Avalonia.Media.Brushes.Transparent;
+            ? new SolidColorBrush(Color.Parse("#FF7A7A"))
+            : new SolidColorBrush(Color.Parse("#74747B"));
+    }
+
+    private void SetActiveTool(ToolMode tool)
+    {
+        _activeTool = tool;
+        MeasureToolButton.IsChecked = tool == ToolMode.Measure;
+        EyedropperToolButton.IsChecked = tool == ToolMode.Eyedropper;
+        MagnifierToolButton.IsChecked = tool == ToolMode.Magnifier;
+
+        SetStatusMessage(
+            tool switch
+            {
+                ToolMode.Measure => "已选择测量工具",
+                ToolMode.Eyedropper => "已选择取色工具",
+                ToolMode.Magnifier => "已选择放大镜",
+                _ => string.Empty
+            },
+            false);
     }
 
     private void MainWindow_Closed(object? sender, EventArgs e)
