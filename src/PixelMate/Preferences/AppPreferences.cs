@@ -32,6 +32,7 @@ public sealed class AppPreferences
 
         _data = _data with { LastOpenDirectory = directory };
 
+        string? temporaryPath = null;
         try
         {
             var parentDirectory = Path.GetDirectoryName(_settingsPath);
@@ -40,9 +41,10 @@ public sealed class AppPreferences
                 Directory.CreateDirectory(parentDirectory);
             }
 
-            File.WriteAllText(
-                _settingsPath,
-                JsonSerializer.Serialize(_data));
+            temporaryPath = $"{_settingsPath}.{Guid.NewGuid():N}.tmp";
+            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(_data));
+            File.Move(temporaryPath, _settingsPath, overwrite: true);
+            temporaryPath = null;
         }
         catch (IOException)
         {
@@ -51,6 +53,22 @@ public sealed class AppPreferences
         catch (UnauthorizedAccessException)
         {
             // A read-only profile must not prevent the image viewer from working.
+        }
+        finally
+        {
+            if (temporaryPath is not null)
+            {
+                try
+                {
+                    File.Delete(temporaryPath);
+                }
+                catch (IOException)
+                {
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+            }
         }
     }
 

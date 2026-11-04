@@ -36,10 +36,25 @@ public partial class MainWindow : Window
             ]
         }
     ];
+    private static readonly IBrush StatusNormalBrush =
+        new SolidColorBrush(Color.Parse("#74747B"));
+    private static readonly IBrush StatusErrorBrush =
+        new SolidColorBrush(Color.Parse("#FF7A7A"));
+    private static readonly IBrush EmptyColorPreviewBrush =
+        new SolidColorBrush(Color.Parse("#4A4A4F"));
+    private static readonly IBrush EmptyColorBorderBrush =
+        new SolidColorBrush(Color.Parse("#66666D"));
+    private static readonly IBrush LiveColorBorderBrush =
+        new SolidColorBrush(Color.Parse("#8A8A92"));
 
     private readonly AppPreferences _preferences = AppPreferences.CreateDefault();
+    private readonly SolidColorBrush _liveColorPreviewBrush =
+        new(Avalonia.Media.Colors.Transparent);
     private ToolMode _activeTool;
     private PixelColor? _sampledColor;
+    private CancellationTokenSource? _imageOpenCancellation;
+    private int _imageOpenVersion;
+    private bool _isClosed;
 
     public MainWindow()
     {
@@ -64,31 +79,41 @@ public partial class MainWindow : Window
 
     private async Task OpenImagePickerAsync()
     {
-        IStorageFolder? suggestedStartLocation = null;
-        if (!string.IsNullOrWhiteSpace(_preferences.LastOpenDirectory)
-            && Directory.Exists(_preferences.LastOpenDirectory))
+        IStorageFolder? suggestedStartLocation;
+        string? path;
+        try
         {
-            suggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(
-                _preferences.LastOpenDirectory);
+            suggestedStartLocation = null;
+            if (!string.IsNullOrWhiteSpace(_preferences.LastOpenDirectory)
+                && Directory.Exists(_preferences.LastOpenDirectory))
+            {
+                suggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(
+                    _preferences.LastOpenDirectory);
+            }
+
+            var files = await StorageProvider.OpenFilePickerAsync(
+                new FilePickerOpenOptions
+                {
+                    Title = "打开图片",
+                    AllowMultiple = false,
+                    FileTypeFilter = ImageFileTypes,
+                    SuggestedStartLocation = suggestedStartLocation
+                });
+            path = files.FirstOrDefault()?.TryGetLocalPath();
+        }
+        catch (Exception)
+        {
+            SetStatusMessage("无法打开文件选择器", true);
+            return;
         }
 
-        var files = await StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions
-            {
-                Title = "打开图片",
-                AllowMultiple = false,
-                FileTypeFilter = ImageFileTypes,
-                SuggestedStartLocation = suggestedStartLocation
-            });
-
-        var path = files.FirstOrDefault()?.TryGetLocalPath();
         if (path is not null)
         {
-            OpenImage(path);
+            await OpenImageAsync(path);
         }
     }
 
-    private void OpenImage(string filePath)
+    private async Task OpenImageAsync(string filePath)
     {
         if (!ImageFileSupport.IsSupportedPath(filePath))
         {
@@ -96,13 +121,28 @@ public partial class MainWindow : Window
             return;
         }
 
+        var openVersion = ++_imageOpenVersion;
+        _imageOpenCancellation?.Cancel();
+        var cancellation = new CancellationTokenSource();
+        _imageOpenCancellation = cancellation;
+        var fileName = Path.GetFileName(filePath);
+        SetStatusMessage($"正在打开 {fileName}", false);
+
         try
         {
-            var decodedImage = OriginalImageDecoder.Decode(filePath);
+            var decodedImage = await Task.Run(
+                () => OriginalImageDecoder.Decode(filePath),
+                cancellation.Token);
+            if (cancellation.IsCancellationRequested
+                || openVersion != _imageOpenVersion
+                || _isClosed)
+            {
+                return;
+            }
+
             ImageCanvas.SetImage(decodedImage);
             _preferences.RememberDirectory(filePath);
 
-            var fileName = Path.GetFileName(filePath);
             ImageNameTextBlock.Text = fileName;
             ImageSizeTextBlock.Text = $"{decodedImage.Width} × {decodedImage.Height}";
             EmptyStatePanel.IsVisible = false;
@@ -114,9 +154,31 @@ public partial class MainWindow : Window
             WindowTitleTextBlock.Text = fileName;
             UpdateViewStatus();
         }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+        }
+        catch (InvalidDataException ex)
+        {
+            if (!_isClosed && openVersion == _imageOpenVersion)
+            {
+                SetStatusMessage($"无法打开图片：{ex.Message}", true);
+            }
+        }
         catch (Exception)
         {
-            SetStatusMessage($"无法打开图片：{Path.GetFileName(filePath)}", true);
+            if (!_isClosed && openVersion == _imageOpenVersion)
+            {
+                SetStatusMessage($"无法打开图片：{fileName}", true);
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(_imageOpenCancellation, cancellation))
+            {
+                _imageOpenCancellation = null;
+            }
+
+            cancellation.Dispose();
         }
     }
 
@@ -150,7 +212,7 @@ public partial class MainWindow : Window
         PointerTextBlock.Text = e.IsInside
             ? $"X {e.PixelX}  Y {e.PixelY}"
             : "X —  Y —";
-        UpdateSampledColor(e.Color);
+        UpdateSampledColor(e.IsInside ? e.Color : null);
     }
 
     private async void ImageCanvas_ColorPicked(
@@ -256,13 +318,13 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void OnDrop(object? sender, DragEventArgs e)
+    private async void OnDrop(object? sender, DragEventArgs e)
     {
         var file = e.DataTransfer.TryGetFiles()?.FirstOrDefault();
         var path = file?.TryGetLocalPath();
         if (path is not null)
         {
-            OpenImage(path);
+            await OpenImageAsync(path);
         }
         else
         {
@@ -353,8 +415,8 @@ public partial class MainWindow : Window
     {
         StatusMessageTextBlock.Text = message;
         StatusMessageTextBlock.Foreground = isError
-            ? new SolidColorBrush(Color.Parse("#FF7A7A"))
-            : new SolidColorBrush(Color.Parse("#74747B"));
+            ? StatusErrorBrush
+            : StatusNormalBrush;
     }
 
     private void SetActiveTool(ToolMode tool)
@@ -410,15 +472,16 @@ public partial class MainWindow : Window
 
         if (!hasColor || color is not { } sampled)
         {
-            ColorPreviewBorder.Background = new SolidColorBrush(Color.Parse("#4A4A4F"));
-            ColorPreviewBorder.BorderBrush = new SolidColorBrush(Color.Parse("#66666D"));
+            ColorPreviewBorder.Background = EmptyColorPreviewBrush;
+            ColorPreviewBorder.BorderBrush = EmptyColorBorderBrush;
             HexTextBlock.Text = "HEX —";
             return;
         }
 
-        ColorPreviewBorder.Background = new SolidColorBrush(
-            Color.FromArgb(sampled.Alpha, sampled.Red, sampled.Green, sampled.Blue));
-        ColorPreviewBorder.BorderBrush = new SolidColorBrush(Color.Parse("#8A8A92"));
+        _liveColorPreviewBrush.Color =
+            Color.FromArgb(sampled.Alpha, sampled.Red, sampled.Green, sampled.Blue);
+        ColorPreviewBorder.Background = _liveColorPreviewBrush;
+        ColorPreviewBorder.BorderBrush = LiveColorBorderBrush;
         HexTextBlock.Text = sampled.Hex;
     }
 
@@ -445,6 +508,8 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closed(object? sender, EventArgs e)
     {
+        _isClosed = true;
+        _imageOpenCancellation?.Cancel();
         ImageCanvas.DisposeImage();
     }
 }

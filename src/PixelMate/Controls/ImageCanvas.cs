@@ -61,6 +61,8 @@ public sealed class ImageCanvas : Control
     private static readonly Typeface MeasurementTypeface =
         new(new FontFamily("SF Mono, Menlo, Consolas, monospace"));
 
+    private readonly SolidColorBrush _eyedropperSwatchBrush =
+        new(Avalonia.Media.Colors.Transparent);
     private Bitmap? _bitmap;
     private ImagePixelBuffer? _pixels;
     private bool _isPanning;
@@ -107,13 +109,15 @@ public sealed class ImageCanvas : Control
     {
         ArgumentNullException.ThrowIfNull(image);
 
-        var bitmap = new WriteableBitmap(
-            new PixelSize(image.Width, image.Height),
-            new Vector(96, 96),
-            PixelFormat.Bgra8888,
-            AlphaFormat.Unpremul);
+        WriteableBitmap? bitmap = null;
+        ImagePixelBuffer pixels;
         try
         {
+            bitmap = new WriteableBitmap(
+                new PixelSize(image.Width, image.Height),
+                new Vector(96, 96),
+                PixelFormat.Bgra8888,
+                AlphaFormat.Unpremul);
             using var framebuffer = bitmap.Lock();
             if (framebuffer.Format != PixelFormat.Bgra8888)
             {
@@ -134,20 +138,22 @@ public sealed class ImageCanvas : Control
                     IntPtr.Add(framebuffer.Address, row * framebuffer.RowBytes),
                     packedRowBytes);
             }
+
+            pixels = ImagePixelBuffer.FromOwnedBgra(
+                image.Width,
+                image.Height,
+                image.BgraPixels,
+                image.RowBytes);
         }
         catch
         {
-            bitmap.Dispose();
+            bitmap?.Dispose();
             throw;
         }
 
         var previous = _bitmap;
         _bitmap = bitmap;
-        _pixels = ImagePixelBuffer.FromOwnedBgra(
-            image.Width,
-            image.Height,
-            image.BgraPixels,
-            image.RowBytes);
+        _pixels = pixels;
         _lastPixelInside = false;
         _lastPixelX = -1;
         _lastPixelY = -1;
@@ -507,7 +513,7 @@ public sealed class ImageCanvas : Control
                 _lastPixelX,
                 _lastPixelY,
                 false,
-                _sampledColor));
+                null));
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -899,8 +905,10 @@ public sealed class ImageCanvas : Control
             swatchSize,
             swatchSize);
         DrawCheckerboard(context, swatchRect);
+        _eyedropperSwatchBrush.Color =
+            Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue);
         context.DrawRectangle(
-            new SolidColorBrush(Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue)),
+            _eyedropperSwatchBrush,
             PickerBorderPen,
             swatchRect,
             3,

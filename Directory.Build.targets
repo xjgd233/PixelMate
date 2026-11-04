@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    Avalonia's SkiaSharp 3 package carries native runtime assets, but a normal
+    RID-less development build does not copy them on every target framework.
+    Copy the current platform's decoder dependency into app and test outputs.
+  -->
+  <Target Name="CopySkiaSharpMacNative"
+          AfterTargets="Build"
+          Condition="'$(OS)' == 'Unix' And Exists('$(NuGetPackageRoot)/skiasharp.nativeassets.macos')">
+    <ItemGroup>
+      <_SkiaSharpNative Include="$(NuGetPackageRoot)/skiasharp.nativeassets.macos/*/runtimes/osx/native/libSkiaSharp*.dylib" />
+    </ItemGroup>
+    <Message Importance="low"
+             Text="Copying SkiaSharp native library from @(_SkiaSharpNative)" />
+    <Copy SourceFiles="@(_SkiaSharpNative)"
+          DestinationFolder="$(TargetDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopySkiaSharpWindowsNative"
+          AfterTargets="Build"
+          Condition="'$(OS)' == 'Windows_NT' And Exists('$(NuGetPackageRoot)/skiasharp.nativeassets.win32')">
+    <ItemGroup>
+      <_SkiaSharpNative Include="$(NuGetPackageRoot)/skiasharp.nativeassets.win32/*/runtimes/win-x64/native/libSkiaSharp.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_SkiaSharpNative)"
+          DestinationFolder="$(TargetDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

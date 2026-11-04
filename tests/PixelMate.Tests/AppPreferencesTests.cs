@@ -45,6 +45,33 @@ public class AppPreferencesTests
         }
     }
 
+    [Fact]
+    public void RememberDirectory_ReplacesSettingsWithoutLeavingTemporaryFiles()
+    {
+        var temporaryDirectory = CreateTemporaryDirectory();
+        try
+        {
+            var settingsPath = Path.Combine(temporaryDirectory, "settings.json");
+            File.WriteAllText(settingsPath, "{\"LastOpenDirectory\":\"/old\"}");
+            var imagePath = Path.Combine(temporaryDirectory, "new.png");
+            var preferences = new AppPreferences(settingsPath);
+
+            preferences.RememberDirectory(imagePath);
+
+            Assert.Equal(
+                temporaryDirectory,
+                new AppPreferences(settingsPath).LastOpenDirectory);
+            Assert.Empty(
+                Directory.GetFiles(
+                    temporaryDirectory,
+                    "settings.json.*.tmp"));
+        }
+        finally
+        {
+            Directory.Delete(temporaryDirectory, true);
+        }
+    }
+
     private static string CreateTemporaryDirectory()
     {
         var path = Path.Combine(Path.GetTempPath(), $"pixelmate-tests-{Guid.NewGuid():N}");

@@ -31,6 +31,8 @@ internal static class OriginalImageDecoder
             throw new InvalidDataException("图片尺寸无效。");
         }
 
+        ImageDecodeLimits.Validate(sourceInfo.Width, sourceInfo.Height);
+
         // Unpremultiplied BGRA preserves the source RGB channels at low alpha.
         var targetInfo = new SKImageInfo(
             sourceInfo.Width,
