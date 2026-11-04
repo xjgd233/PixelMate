@@ -5,6 +5,7 @@ project_root="$(cd "$(dirname "$0")/.." && pwd)"
 dotnet_bin="${DOTNET_ROOT:-$HOME/.dotnet}/dotnet"
 output_dir="$project_root/artifacts/PixelMate-win-x64"
 archive_path="$project_root/artifacts/PixelMate-1.0.0-win-x64.zip"
+offline_archive_path="$project_root/artifacts/PixelMate-1.0.0-win-x64-offline.zip"
 
 export AVALONIA_TELEMETRY_OPTOUT=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -23,6 +24,7 @@ rm -rf "$output_dir"
   --self-contained true \
   -p:DebugType=None \
   -p:DebugSymbols=false \
+  -p:NuGetAudit=false \
   -o "$output_dir" \
   -m:1 \
   -nodeReuse:false \
@@ -54,12 +56,18 @@ cp "$project_root/docs/windows-acceptance-checklist.md" \
 cp "$project_root/docs/release-notes-1.0.0.md" "$output_dir/RELEASE-NOTES.md"
 cp "$project_root/docs/windows-acceptance-checklist.md" \
   "$output_dir/WINDOWS-ACCEPTANCE.md"
+cp "$project_root/docs/windows-offline-package.md" \
+  "$output_dir/OFFLINE-README.md"
+cp "$project_root/scripts/windows/START-PIXELMATE.cmd" \
+  "$output_dir/START-PIXELMATE.cmd"
 
-rm -f "$archive_path"
+rm -f "$archive_path" "$offline_archive_path"
 (
   cd "$project_root/artifacts"
   zip -r -q -X "$(basename "$archive_path")" "$(basename "$output_dir")"
 )
+cp "$archive_path" "$offline_archive_path"
 
 print "Windows x64 publish output: $output_dir"
 print "Windows x64 release archive: $archive_path"
+print "Windows x64 offline archive: $offline_archive_path"

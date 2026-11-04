@@ -25,11 +25,13 @@
             <Setter Property="Background" Value="#2B2B2F" />
             <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
         <Style Selector="TextBlock.contactLabel">
             <Setter Property="Foreground" Value="#74747B" />
             <Setter Property="FontSize" Value="10" />
+            <Setter Property="LineHeight" Value="14" />
         </Style>
         <Style Selector="Border.aboutCard">
             <Setter Property="Padding" Value="16" />
@@ -60,11 +62,13 @@
                         <TextBlock Text="笑"
                                    Foreground="#B8D7FF"
                                    FontSize="38"
+                                   LineHeight="44"
                                    FontWeight="SemiBold"
                                    HorizontalAlignment="Center" />
                         <TextBlock Text="图片文件夹 · 头像"
                                    Foreground="#7F8A99"
                                    FontSize="9"
+                                   LineHeight="13"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
                 </Grid>
@@ -75,14 +79,16 @@
                 <TextBlock Text="PixelMate"
                            Foreground="{StaticResource DialogTextBrush}"
                            FontSize="28"
+                           LineHeight="35"
                            FontWeight="SemiBold" />
                 <TextBlock Text="轻量级图片像素测量、取色与批注工具"
                            Foreground="{StaticResource DialogMutedBrush}"
-                           FontSize="13" />
+                           FontSize="13"
+                           LineHeight="19" />
                 <TextBlock x:Name="VersionTextBlock"
                            Foreground="#808089"
-                           FontFamily="SF Mono, Menlo, Consolas, monospace"
-                           FontSize="11" />
+                           FontSize="11"
+                           LineHeight="16" />
             </StackPanel>
         </Grid>
 
@@ -96,10 +102,12 @@
                         <TextBlock Text="联系作者"
                                    Foreground="{StaticResource DialogTextBrush}"
                                    FontSize="16"
+                                   LineHeight="22"
                                    FontWeight="SemiBold" />
                         <TextBlock Text="笑脸152 · 问题反馈、使用交流与功能建议"
                                    Foreground="{StaticResource DialogMutedBrush}"
-                                   FontSize="11" />
+                                   FontSize="11"
+                                   LineHeight="17" />
                     </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
                         <TextBlock Grid.Row="0"
@@ -112,7 +120,7 @@
                                 Classes="contact"
                                 Margin="12,0,0,0"
                                 Click="GitHub_Click"
-                                Content="xiaowenhao2333" />
+                                Content="xjgd233" />
 
                         <TextBlock Grid.Row="1"
                                    Text="QQ"
@@ -149,6 +157,7 @@
                     <TextBlock Text="图像只在本地处理，不上传、不修改源文件。"
                                Foreground="{StaticResource DialogMutedBrush}"
                                FontSize="11"
+                               LineHeight="17"
                                TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
@@ -159,10 +168,12 @@
                         <TextBlock Text="支持 PixelMate"
                                    Foreground="{StaticResource DialogTextBrush}"
                                    FontSize="16"
+                                   LineHeight="22"
                                    FontWeight="SemiBold" />
                         <TextBlock Text="如果它帮你节省了时间，欢迎支持后续维护。"
                                    Foreground="{StaticResource DialogMutedBrush}"
                                    FontSize="10"
+                                   LineHeight="16"
                                    TextWrapping="Wrap" />
                     </StackPanel>
                     <Border Grid.Row="1"
@@ -185,11 +196,13 @@
                                         Spacing="6">
                                 <TextBlock Text="赞助码"
                                            Foreground="#4A4A52"
+                                           LineHeight="18"
                                            FontWeight="SemiBold"
                                            HorizontalAlignment="Center" />
                                 <TextBlock Text="图片文件夹 · 赞助码"
                                            Foreground="#85858D"
                                            FontSize="10"
+                                           LineHeight="15"
                                            HorizontalAlignment="Center" />
                             </StackPanel>
                         </Grid>
@@ -198,6 +211,7 @@
                                Text="自愿赞助，感谢每一份支持。"
                                Foreground="{StaticResource DialogMutedBrush}"
                                FontSize="10"
+                               LineHeight="15"
                                HorizontalAlignment="Center" />
                 </Grid>
             </Border>
@@ -207,6 +221,7 @@
             <TextBlock Text="Built with .NET 10 · Avalonia"
                        Foreground="#74747B"
                        FontSize="10"
+                       LineHeight="14"
                        VerticalAlignment="Center" />
             <Button Grid.Column="1"
                     Classes="contact"

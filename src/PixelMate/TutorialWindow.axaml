@@ -22,6 +22,7 @@
         <Style Selector="TextBlock.guideTitle">
             <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
             <Setter Property="FontSize" Value="17" />
+            <Setter Property="LineHeight" Value="23" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
         <Style Selector="TextBlock.guideBody">
@@ -53,10 +54,12 @@
             <TextBlock Text="第一次使用 PixelMate"
                        Foreground="{StaticResource DialogTextBrush}"
                        FontSize="25"
+                       LineHeight="32"
                        FontWeight="SemiBold" />
             <TextBlock Text="几分钟了解常用操作。这里只测量和检查图片，不会改写或上传源文件。"
                        Foreground="{StaticResource DialogMutedBrush}"
                        FontSize="12"
+                       LineHeight="18"
                        TextWrapping="Wrap" />
         </StackPanel>
 
@@ -181,8 +184,8 @@
                                        VerticalAlignment="Center" />
                         </Border>
                         <StackPanel Grid.Column="1" Spacing="4">
-                            <TextBlock Text="随时回来查看" Classes="guideTitle" />
-                            <TextBlock Text="点击顶部的设置按钮，可以再次打开本指南、调整默认放大镜倍率，或查看关于信息。"
+                            <TextBlock Text="保存与随时查看" Classes="guideTitle" />
+                            <TextBlock Text="完成测量或批注后，按 ⌘S / Ctrl+S 选择位置并保存原分辨率 PNG。点击设置按钮可再次打开本指南、调整默认倍率或查看关于信息。"
                                        Classes="guideBody" />
                         </StackPanel>
                     </Grid>

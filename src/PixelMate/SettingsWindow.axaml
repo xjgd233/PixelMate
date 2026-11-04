@@ -19,16 +19,20 @@
         <Style Selector="TextBlock.sectionTitle">
             <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
             <Setter Property="FontSize" Value="14" />
+            <Setter Property="LineHeight" Value="20" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
         <Style Selector="TextBlock.sectionBody">
             <Setter Property="Foreground" Value="{StaticResource DialogMutedBrush}" />
             <Setter Property="FontSize" Value="11" />
+            <Setter Property="LineHeight" Value="17" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style Selector="CheckBox, RadioButton">
             <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Border.settingsCard">
             <Setter Property="Padding" Value="16" />
@@ -44,6 +48,7 @@
             <Setter Property="Background" Value="#2B2B2F" />
             <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="12" />
         </Style>
         <Style Selector="Button.primary">
             <Setter Property="Height" Value="34" />
@@ -52,6 +57,7 @@
             <Setter Property="Background" Value="{StaticResource DialogAccentBrush}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
     </Window.Styles>
@@ -61,10 +67,12 @@
             <TextBlock Text="设置"
                        Foreground="{StaticResource DialogTextBrush}"
                        FontSize="24"
+                       LineHeight="31"
                        FontWeight="SemiBold" />
             <TextBlock Text="只保存少量本地偏好，不会上传任何内容。"
                        Foreground="{StaticResource DialogMutedBrush}"
-                       FontSize="12" />
+                       FontSize="12"
+                       LineHeight="18" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" Margin="0,20,0,18">
@@ -131,6 +139,7 @@
                        Text="PixelMate 1.0.0"
                        Foreground="#74747B"
                        FontSize="11"
+                       LineHeight="15"
                        VerticalAlignment="Center" />
             <Button Grid.Column="1"
                     Classes="secondary"

@@ -11,6 +11,7 @@ $dotnet = if ($env:DOTNET_ROOT) {
 }
 $outputDir = Join-Path $projectRoot "artifacts/PixelMate-win-x64"
 $archivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64.zip"
+$offlineArchivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64-offline.zip"
 
 if (Test-Path $outputDir) {
     Remove-Item $outputDir -Recurse -Force
@@ -23,6 +24,7 @@ if (Test-Path $outputDir) {
     --self-contained true `
     "-p:DebugType=None" `
     "-p:DebugSymbols=false" `
+    "-p:NuGetAudit=false" `
     -o $outputDir `
     -m:1 `
     -nodeReuse:false `
@@ -66,14 +68,25 @@ Copy-Item `
 Copy-Item `
     (Join-Path $projectRoot "docs/windows-acceptance-checklist.md") `
     (Join-Path $outputDir "WINDOWS-ACCEPTANCE.md")
+Copy-Item `
+    (Join-Path $projectRoot "docs/windows-offline-package.md") `
+    (Join-Path $outputDir "OFFLINE-README.md")
+Copy-Item `
+    (Join-Path $projectRoot "scripts/windows/START-PIXELMATE.cmd") `
+    (Join-Path $outputDir "START-PIXELMATE.cmd")
 
 if (Test-Path $archivePath) {
     Remove-Item $archivePath -Force
+}
+if (Test-Path $offlineArchivePath) {
+    Remove-Item $offlineArchivePath -Force
 }
 Compress-Archive `
     -Path $outputDir `
     -DestinationPath $archivePath `
     -CompressionLevel Optimal
+Copy-Item $archivePath $offlineArchivePath
 
 Write-Host "Windows x64 publish output: $outputDir"
 Write-Host "Windows x64 release archive: $archivePath"
+Write-Host "Windows x64 offline archive: $offlineArchivePath"

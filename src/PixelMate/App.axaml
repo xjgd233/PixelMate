@@ -3,7 +3,35 @@
              x:Class="PixelMate.App"
              RequestedThemeVariant="Dark">
 
+    <Application.Resources>
+        <FontFamily x:Key="AppSystemFont">
+            SF Pro Text, SF Pro Display, -apple-system, Helvetica Neue, PingFang SC, Hiragino Sans GB, Microsoft YaHei UI, Segoe UI
+        </FontFamily>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
+
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+        </Style>
+        <Style Selector="ToggleButton">
+            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+        </Style>
+        <Style Selector="RadioButton">
+            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+        </Style>
     </Application.Styles>
 </Application>

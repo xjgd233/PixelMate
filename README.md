@@ -21,8 +21,11 @@
 
 - 深色主窗口、原生感扩展标题栏、三组工具栏和分栏状态栏。
 - 打开、测量、取色、放大镜、批注工具入口及清晰单选状态。
+- 主窗口顶部标题栏可拖动，双击可最大化或还原。
 - 空画布引导、图片标题、尺寸、坐标、颜色和缩放状态展示。
-- `⌘O` / `Ctrl+O` 打开图片。
+- `⌘O` / `Ctrl+O` 打开图片，`⌘S` / `Ctrl+S` 保存处理后的图片。
+- 保存图片时使用系统保存位置选择器；导出保持原始分辨率，并合成当前测量线与批注。
+- 默认界面字体使用 Apple 系统字体优先顺序；Windows 自动回退到系统中文字体。
 - Photoshop 风格工具快捷键：`M` 测量、`I` 取色、`Z` 放大镜、`T` 批注。
 - 按住空格临时切换抓手拖动；`⌘/Ctrl+0` 适应窗口，`⌘/Ctrl+1` 恢复 100%。
 - `⌘/Ctrl++`、`⌘/Ctrl+-` 缩放，`[` / `]` 调整放大镜倍率。
@@ -31,7 +34,7 @@
 - 批注编辑框支持 `⌘/Ctrl+Enter` 保存和 `Esc` 取消，不上传或改写源图。
 - 设置面板支持放大镜默认倍率、是否记住上次文件夹、是否每次启动显示指南。
 - 首次启动自动显示操作指南，之后可从设置再次打开。
-- 关于页展示内置作者头像、GitHub、QQ、邮箱与微信赞助码。
+- 关于页展示内置作者头像、GitHub（`https://github.com/xjgd233`）、QQ、邮箱与微信赞助码。
 - 关于页会从系统图片文件夹读取文件名包含 `avatar` / `头像` 和
   `sponsor` / `赞助` / `收款码` / `赞赏` 的图片。
 - 通过文件选择器或拖拽打开 PNG、JPG、JPEG、BMP、WebP。
@@ -110,9 +113,13 @@ Windows PowerShell：
 ```text
 artifacts/PixelMate-win-x64/
 artifacts/PixelMate-1.0.0-win-x64.zip
+artifacts/PixelMate-1.0.0-win-x64-offline.zip
 ```
 
 该目录采用 `win-x64`、Release、自包含发布，用户无需另装 .NET Runtime。
+离线 ZIP 与外层发布 ZIP 内容相同，二者都包含 .NET 10 运行时。完整解压后运行
+`START-PIXELMATE.cmd` 或 `PixelMate.exe` 即可，不需要联网，也不需要安装额外的
+`.NET` 运行时。
 发布脚本会清理旧输出、检查主程序、图形原生库，复制根目录 README 与
 [`docs/release-notes-1.0.0.md`](docs/release-notes-1.0.0.md) 发布说明。
 最后生成供 Windows 用户解压的 ZIP 发布包。
@@ -128,6 +135,8 @@ Windows 实机验收步骤见
 ```
 
 说明见 [`docs/windows-devhost-testing.md`](docs/windows-devhost-testing.md)。
+`devhost` 包故意采用框架依赖模式，需要已安装 .NET 10 Runtime，不属于离线包；
+离线使用请选择文件名不带 `devhost` 的完整 ZIP。
 
 取得商业 Authenticode 证书后，可在 Windows 上按证书指纹签名并重新打包：
 

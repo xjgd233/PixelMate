@@ -1,25 +1,29 @@
 # PixelMate 1.0.0 Windows x64 验收清单
 
-验收包：`PixelMate-1.0.0-win-x64.zip`
+验收包：`PixelMate-1.0.0-win-x64-offline.zip`
 
 ## 准备
 
 1. 将整个 ZIP 解压到普通文件夹，不要在压缩包预览窗口中直接运行。
-2. 核对 `PixelMate-win-x64/PixelMate.exe` 存在，README 与发布说明随包存在。
-3. 在 PowerShell 中核对压缩包：
+2. 核对 `PixelMate-win-x64/PixelMate.exe`、`START-PIXELMATE.cmd`、
+   `OFFLINE-README.md`、README 与发布说明随包存在。
+3. 此包已包含 .NET 运行时，不需要联网或额外安装 .NET；不要使用文件名带
+   `devhost` 的框架依赖开发验收包。
+4. 在 PowerShell 中核对压缩包：
 
 ```powershell
-Get-FileHash .\PixelMate-1.0.0-win-x64.zip -Algorithm SHA256
+Get-FileHash .\PixelMate-1.0.0-win-x64-offline.zip -Algorithm SHA256
 ```
 
-4. 首次运行出现“Windows 已保护你的电脑”时，确认文件来源后选择“更多信息”与
+5. 首次运行出现“Windows 已保护你的电脑”时，确认文件来源后选择“更多信息”与
    “仍要运行”。当前版本未做代码签名。
 
 ## 主流程
 
 | 检查项 | 操作 | 预期结果 |
 | --- | --- | --- |
-| 启动 | 双击 `PixelMate.exe` | 正常显示深色主窗口，名称、图标和 `1.0.0` 正确 |
+| 启动 | 双击 `START-PIXELMATE.cmd` 或 `PixelMate.exe` | 正常显示深色主窗口，名称、图标和 `1.0.0` 正确；不提示安装 .NET |
+| 窗口移动 | 拖动顶部标题栏，双击标题栏 | 可移动窗口；双击在最大化和还原之间切换 |
 | 首次指南 | 首次启动 | 自动显示操作指南；关闭后重启不再自动弹出 |
 | 文件选择 | `Ctrl+O` 打开 PNG、JPG、BMP、WebP | 都能载入，状态栏文件名和原始尺寸正确 |
 | 透明图 | 打开透明 PNG | 透明区域显示棋盘格；取色可得到 `#00000000` |
@@ -27,6 +31,7 @@ Get-FileHash .\PixelMate-1.0.0-win-x64.zip -Algorithm SHA256
 | 取色 | 按 `I`，移动并点击颜色 | 状态栏显示 HEX；点击后复制 HEX，RGB 按钮可复制 RGB |
 | 放大镜 | 按 `Z`，使用 `[` / `]` | 显示像素网格、中心十字与当前像素；倍率在 8×/12×/16×切换 |
 | 批注 | 按 `T`，点击图片并输入多行文字 | `Ctrl+Enter` 保存；缩放和平移后锚点仍跟随图片 |
+| 保存图片 | 点击“保存图片”或按 `Ctrl+S` | 打开系统保存位置选择器；输出 PNG 保持原图分辨率并含测量线与批注 |
 | 复制 | `Ctrl+C` | 按当前工具复制测量、批注或当前 HEX |
 | 清除 | `Delete` 或 `Backspace` | 清除当前工具结果，不修改源图片 |
 | 缩放 | 滚轮、`Ctrl++`、`Ctrl+-` | 以合理中心缩放，状态栏百分比更新 |
@@ -34,7 +39,8 @@ Get-FileHash .\PixelMate-1.0.0-win-x64.zip -Algorithm SHA256
 | 平移 | 中键拖动；按住空格左键拖动 | 图片按拖动方向平移，测量和批注跟随图片 |
 | 设置 | 点击顶部设置按钮 | 可切换默认倍率、目录记忆、启动指南，保存后重启仍生效 |
 | 指南 | 设置 → 操作指南 | 可再次打开步骤说明 |
-| 关于 | 设置 → 关于 | 显示版本、GitHub、QQ、邮箱、头像和赞助码；QQ 可复制 |
+| 关于 | 设置 → 关于 | 显示版本、`xjgd233` GitHub、QQ、邮箱、头像和赞助码；QQ 可复制 |
+| 字体 | 查看设置、状态栏、坐标和数字 | 中文与数字基线稳定、行高正常；macOS 优先 SF Pro/苹方，Windows 使用系统中文字体 |
 
 ## 高 DPI
 

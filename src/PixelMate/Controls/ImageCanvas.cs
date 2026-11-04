@@ -73,7 +73,7 @@ public sealed class ImageCanvas : Control
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
     private static readonly Cursor MeasuringCursor = new(StandardCursorType.Cross);
     private static readonly Typeface MeasurementTypeface =
-        new(new FontFamily("SF Mono, Menlo, Consolas, monospace"));
+        new(AppTypography.SystemFontFamily);
 
     private readonly SolidColorBrush _eyedropperSwatchBrush =
         new(Avalonia.Media.Colors.Transparent);
@@ -395,6 +395,55 @@ public sealed class ImageCanvas : Control
             InvalidateVisual();
             AnnotationsChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    public void SaveEditedImage(Stream destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        if (_bitmap is null || _pixels is null)
+        {
+            throw new InvalidOperationException("当前没有可保存的图片。");
+        }
+
+        var width = _pixels.Width;
+        var height = _pixels.Height;
+        var imageBounds = new Rect(0, 0, width, height);
+        var overlayScale = EditedImageExport.CalculateOverlayScale(width, height);
+        using var renderTarget = new RenderTargetBitmap(
+            new PixelSize(width, height),
+            new Vector(96, 96));
+        using (var context = renderTarget.CreateDrawingContext())
+        {
+            context.DrawImage(
+                _bitmap,
+                new Rect(_bitmap.Size),
+                imageBounds);
+
+            foreach (var measurement in _measurements)
+            {
+                DrawExportMeasurement(
+                    context,
+                    measurement,
+                    imageBounds,
+                    overlayScale);
+            }
+
+            foreach (var annotation in _annotations)
+            {
+                DrawExportAnnotation(
+                    context,
+                    annotation,
+                    imageBounds,
+                    overlayScale);
+            }
+        }
+
+        renderTarget.Save(
+            destination,
+            new PngBitmapEncoderOptions
+            {
+                CompressionLevel = System.IO.Compression.CompressionLevel.Optimal
+            });
     }
 
     public override void Render(DrawingContext context)
@@ -969,6 +1018,64 @@ public sealed class ImageCanvas : Control
             new Point(labelRect.X + horizontalPadding, labelRect.Y + verticalPadding));
     }
 
+    private static void DrawExportMeasurement(
+        DrawingContext context,
+        PixelMeasurement measurement,
+        Rect imageBounds,
+        double scale)
+    {
+        var start = new Point(measurement.Start.X, measurement.Start.Y);
+        var end = new Point(measurement.End.X, measurement.End.Y);
+        var shadowPen = new Pen(MeasurementShadowBrush, 2.8 * scale);
+        var linePen = new Pen(MeasurementBrush, 1.1 * scale);
+        context.DrawLine(shadowPen, start, end);
+        context.DrawLine(linePen, start, end);
+
+        context.DrawEllipse(MeasurementShadowBrush, null, start, 4 * scale, 4 * scale);
+        context.DrawEllipse(MeasurementEndpointInnerBrush, null, start, 2.2 * scale, 2.2 * scale);
+        context.DrawEllipse(MeasurementShadowBrush, null, end, 4 * scale, 4 * scale);
+        context.DrawEllipse(MeasurementEndpointInnerBrush, null, end, 2.2 * scale, 2.2 * scale);
+
+        var text = new FormattedText(
+            MeasurementFormatting.FormatLabel(measurement),
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            10.5 * scale,
+            MeasurementLabelTextBrush);
+        var horizontalPadding = 7 * scale;
+        var verticalPadding = 3 * scale;
+        var width = text.WidthIncludingTrailingWhitespace + (horizontalPadding * 2);
+        var height = text.Height + (verticalPadding * 2);
+
+        var dx = end.X - start.X;
+        var dy = end.Y - start.Y;
+        var lineLength = Math.Sqrt((dx * dx) + (dy * dy));
+        var normalX = lineLength > 0.001 ? -dy / lineLength : 0;
+        var normalY = lineLength > 0.001 ? dx / lineLength : -1;
+        var middleX = (start.X + end.X) / 2;
+        var middleY = (start.Y + end.Y) / 2;
+        var labelOffset = 14 * scale;
+        var margin = 6 * scale;
+
+        var left = middleX + (normalX * labelOffset) - (width / 2);
+        var top = middleY + (normalY * labelOffset) - (height / 2);
+        left = Math.Clamp(left, margin, Math.Max(margin, imageBounds.Width - width - margin));
+        top = Math.Clamp(top, margin, Math.Max(margin, imageBounds.Height - height - margin));
+        var labelRect = new Rect(left, top, width, height);
+        context.DrawRectangle(
+            MeasurementLabelBackgroundBrush,
+            new Pen(new SolidColorBrush(Color.Parse("#995E5140")), scale),
+            labelRect,
+            5 * scale,
+            5 * scale);
+        context.DrawText(
+            text,
+            new Point(
+                labelRect.X + horizontalPadding,
+                labelRect.Y + verticalPadding));
+    }
+
     private void DrawEyedropperPreview(DrawingContext context)
     {
         if (!_isEyedropperEnabled
@@ -1050,7 +1157,10 @@ public sealed class ImageCanvas : Control
             FlowDirection.LeftToRight,
             MeasurementTypeface,
             11,
-            AnnotationLabelTextBrush);
+            AnnotationLabelTextBrush)
+        {
+            LineHeight = 16
+        };
 
         const double horizontalPadding = 8;
         const double verticalPadding = 5;
@@ -1095,6 +1205,88 @@ public sealed class ImageCanvas : Control
         }
 
         DrawAnnotationMarker(context, anchor);
+    }
+
+    private static void DrawExportAnnotation(
+        DrawingContext context,
+        PixelAnnotation annotation,
+        Rect imageBounds,
+        double scale)
+    {
+        var anchorPoint = new Point(annotation.Anchor.X, annotation.Anchor.Y);
+        var displayText = new FormattedText(
+            WrapAnnotationText(annotation.Text),
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            11.5 * scale,
+            AnnotationLabelTextBrush)
+        {
+            LineHeight = 16 * scale
+        };
+
+        var horizontalPadding = 8 * scale;
+        var verticalPadding = 5 * scale;
+        var labelGap = 12 * scale;
+        var margin = 6 * scale;
+        var maximumWidth = 260 * scale;
+        var width = Math.Min(
+            maximumWidth,
+            displayText.WidthIncludingTrailingWhitespace + (horizontalPadding * 2));
+        var height = displayText.Height + (verticalPadding * 2);
+        var left = anchorPoint.X + labelGap;
+        var top = anchorPoint.Y - height - labelGap;
+        if (left + width > imageBounds.Width - margin)
+        {
+            left = anchorPoint.X - width - labelGap;
+        }
+
+        if (top < margin)
+        {
+            top = anchorPoint.Y + labelGap;
+        }
+
+        left = Math.Clamp(left, margin, Math.Max(margin, imageBounds.Width - width - margin));
+        top = Math.Clamp(top, margin, Math.Max(margin, imageBounds.Height - height - margin));
+        var labelRect = new Rect(left, top, width, height);
+        var leaderEnd = new Point(
+            labelRect.X > anchorPoint.X ? labelRect.X : labelRect.Right,
+            labelRect.Y > anchorPoint.Y ? labelRect.Y : labelRect.Bottom);
+        context.DrawLine(
+            new Pen(new SolidColorBrush(Color.Parse("#CC63E6BE")), 1.2 * scale),
+            anchorPoint,
+            leaderEnd);
+        context.DrawRectangle(
+            AnnotationLabelBackgroundBrush,
+            new Pen(new SolidColorBrush(Color.Parse("#6663E6BE")), scale),
+            labelRect,
+            6 * scale,
+            6 * scale);
+        using (context.PushClip(
+            labelRect.Deflate(
+                new Thickness(
+                    horizontalPadding - scale,
+                    verticalPadding - scale))))
+        {
+            context.DrawText(
+                displayText,
+                new Point(
+                    labelRect.X + horizontalPadding,
+                    labelRect.Y + verticalPadding));
+        }
+
+        context.DrawEllipse(
+            AnnotationBrush,
+            null,
+            anchorPoint,
+            6 * scale,
+            6 * scale);
+        context.DrawEllipse(
+            AnnotationInnerBrush,
+            null,
+            anchorPoint,
+            2.4 * scale,
+            2.4 * scale);
     }
 
     private static void DrawAnnotationMarker(

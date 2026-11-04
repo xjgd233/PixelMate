@@ -14,6 +14,7 @@ if ([string]::IsNullOrWhiteSpace($OutputDir)) {
     $OutputDir = Join-Path $projectRoot "artifacts/PixelMate-win-x64"
 }
 $archivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64.zip"
+$offlineArchivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64-offline.zip"
 
 if (-not (Test-Path $OutputDir -PathType Container)) {
     throw "Publish directory does not exist: $OutputDir"
@@ -75,11 +76,16 @@ foreach ($target in $targets) {
 if (Test-Path $archivePath) {
     Remove-Item $archivePath -Force
 }
+if (Test-Path $offlineArchivePath) {
+    Remove-Item $offlineArchivePath -Force
+}
 Compress-Archive `
     -Path $OutputDir `
     -DestinationPath $archivePath `
     -CompressionLevel Optimal
+Copy-Item $archivePath $offlineArchivePath
 
 $archiveHash = (Get-FileHash $archivePath -Algorithm SHA256).Hash
 Write-Host "Signed release archive: $archivePath"
+Write-Host "Signed offline archive: $offlineArchivePath"
 Write-Host "SHA-256: $archiveHash"

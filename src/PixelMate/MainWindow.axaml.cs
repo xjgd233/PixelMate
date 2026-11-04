@@ -39,6 +39,14 @@ public partial class MainWindow : Window
             ]
         }
     ];
+    private static readonly IReadOnlyList<FilePickerFileType> EditedImageFileTypes =
+    [
+        new("PNG 图片")
+        {
+            Patterns = ["*.png"],
+            MimeTypes = ["image/png"]
+        }
+    ];
     private static readonly IBrush StatusNormalBrush =
         new SolidColorBrush(Color.Parse("#74747B"));
     private static readonly IBrush StatusErrorBrush =
@@ -60,6 +68,7 @@ public partial class MainWindow : Window
     private int _imageOpenVersion;
     private bool _isClosed;
     private bool _hasShownStartupTutorial;
+    private string? _currentImagePath;
 
     public MainWindow()
     {
@@ -91,6 +100,28 @@ public partial class MainWindow : Window
     private async void OpenImage_Click(object? sender, RoutedEventArgs e)
     {
         await OpenImagePickerAsync();
+    }
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(this);
+        if (!point.Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        if (e.ClickCount == 2)
+        {
+            WindowState = WindowState == WindowState.Maximized
+                ? WindowState.Normal
+                : WindowState.Maximized;
+        }
+        else
+        {
+            BeginMoveDrag(e);
+        }
+
+        e.Handled = true;
     }
 
     private async Task OpenImagePickerAsync()
@@ -158,6 +189,7 @@ public partial class MainWindow : Window
             }
 
             ImageCanvas.SetImage(decodedImage);
+            _currentImagePath = filePath;
             _preferences.RememberDirectory(filePath);
 
             ImageNameTextBlock.Text = fileName;
@@ -196,6 +228,78 @@ public partial class MainWindow : Window
             }
 
             cancellation.Dispose();
+        }
+    }
+
+    private async void SaveEditedImage_Click(object? sender, RoutedEventArgs e)
+    {
+        await SaveEditedImageAsync();
+    }
+
+    private async Task SaveEditedImageAsync()
+    {
+        if (!ImageCanvas.Transform.HasImage || _currentImagePath is null)
+        {
+            SetStatusMessage("请先打开一张图片", true);
+            return;
+        }
+
+        IStorageFile? file;
+        try
+        {
+            IStorageFolder? suggestedStartLocation = null;
+            if (!string.IsNullOrWhiteSpace(_preferences.LastOpenDirectory)
+                && Directory.Exists(_preferences.LastOpenDirectory))
+            {
+                suggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(
+                    _preferences.LastOpenDirectory);
+            }
+
+            file = await StorageProvider.SaveFilePickerAsync(
+                new FilePickerSaveOptions
+                {
+                    Title = "保存更改后的图片",
+                    SuggestedFileName = EditedImageExport.CreateSuggestedFileName(
+                        _currentImagePath),
+                    SuggestedStartLocation = suggestedStartLocation,
+                    DefaultExtension = "png",
+                    FileTypeChoices = EditedImageFileTypes,
+                    ShowOverwritePrompt = true
+                });
+        }
+        catch (Exception)
+        {
+            SetStatusMessage("无法打开保存位置选择器", true);
+            return;
+        }
+
+        if (file is null)
+        {
+            return;
+        }
+
+        SaveEditedImageButton.IsEnabled = false;
+        SetStatusMessage("正在保存图片…", false);
+        try
+        {
+            await using var stream = await file.OpenWriteAsync();
+            ImageCanvas.SaveEditedImage(stream);
+            await stream.FlushAsync();
+            var savedPath = file.TryGetLocalPath();
+            if (!string.IsNullOrWhiteSpace(savedPath))
+            {
+                _preferences.RememberDirectory(savedPath);
+            }
+
+            SetStatusMessage($"已保存 {file.Name}", false);
+        }
+        catch (Exception)
+        {
+            SetStatusMessage("保存图片失败，请检查保存位置是否可写", true);
+        }
+        finally
+        {
+            SaveEditedImageButton.IsEnabled = ImageCanvas.Transform.HasImage;
         }
     }
 
@@ -400,6 +504,13 @@ public partial class MainWindow : Window
         {
             e.Handled = true;
             await OpenImagePickerAsync();
+            return;
+        }
+
+        if (hasPrimaryModifier && e.Key == Key.S)
+        {
+            e.Handled = true;
+            await SaveEditedImageAsync();
             return;
         }
 
@@ -732,6 +843,7 @@ public partial class MainWindow : Window
         ActualSizeButton.IsEnabled = isEnabled;
         ZoomOutButton.IsEnabled = isEnabled;
         ZoomInButton.IsEnabled = isEnabled;
+        SaveEditedImageButton.IsEnabled = isEnabled;
         MeasureToolButton.IsEnabled = isEnabled;
         EyedropperToolButton.IsEnabled = isEnabled;
         MagnifierToolButton.IsEnabled = isEnabled;
@@ -865,6 +977,9 @@ public partial class MainWindow : Window
         ToolTip.SetTip(
             OpenImageButton,
             $"打开图片 ({primary}O)");
+        ToolTip.SetTip(
+            SaveEditedImageButton,
+            $"保存带测量和批注的图片 ({primary}S)");
         ToolTip.SetTip(
             MeasureToolButton,
             "测量像素距离 (M)；按住 Shift 锁定水平或垂直");

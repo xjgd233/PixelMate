@@ -13,12 +13,18 @@
 - 批注可包含多行文字，使用 `⌘/Ctrl+Enter` 保存、`Esc` 取消，最多 500 字符。
 - 批注以青绿色锚点、引线和浮层显示，缩放、平移和窗口变化后仍跟随图片。
 - 支持多条批注、`⌘/Ctrl+C` 复制全部批注，以及 `Delete/Backspace` 清除全部批注。
+- 新增“保存图片”按钮及 `⌘/Ctrl+S`，使用系统保存位置选择器输出 PNG。
+- 导出的 PNG 保持原图分辨率，并将当前全部测量线、长度标签和批注合成到输出图片。
+- 主窗口自绘标题栏支持拖动移动，双击可在最大化和还原之间切换。
+- 移除 Inter 字体依赖，界面优先使用 SF Pro / 苹方等 Apple 系统字体，
+  并统一数字、控件和说明文字的行高。
 - 新增设置窗口，可从顶部工具栏的滑杆按钮打开。
 - 设置支持默认放大镜倍率、记住上次图片文件夹、每次启动显示操作指南。
 - 设置通过原有原子写入机制保存到本机 `settings.json`。
 - 新增首次启动操作指南，包含打开、测量、取色、放大镜、批注、缩放和平移步骤。
 - 完成首次指南后记录完成状态；后续只通过设置中的“操作指南”重新打开。
 - 新增关于页，显示作者、版本、GitHub、QQ、邮箱、头像和赞助码区域。
+- 已在浏览器核实 GitHub 账号并修正为 `https://github.com/xjgd233`。
 - QQ 号码支持点击复制，邮箱与 GitHub 使用系统默认应用打开。
 - 关于页会从系统图片文件夹自动查找文件名包含以下关键词的图片：
   - 头像：`avatar`、`头像`。
@@ -32,21 +38,29 @@
 - `docs/release-notes-1.0.0.md`
 - `docs/phase-status.md`
 - `docs/reports/phase-8-report.md`
+- `docs/windows-acceptance-checklist.md`
+- `docs/windows-offline-package.md`
 - `src/PixelMate/About/AboutImageLocator.cs`
 - `src/PixelMate/AboutWindow.axaml`
 - `src/PixelMate/AboutWindow.axaml.cs`
 - `src/PixelMate/Annotations/PixelAnnotation.cs`
+- `src/PixelMate/App.axaml`
+- `src/PixelMate/AppTypography.cs`
 - `src/PixelMate/AppIdentity.cs`
 - `src/PixelMate/Controls/ImageCanvas.cs`
+- `src/PixelMate/Imaging/EditedImageExport.cs`
 - `src/PixelMate/MainWindow.axaml`
 - `src/PixelMate/MainWindow.axaml.cs`
 - `src/PixelMate/Preferences/AppPreferences.cs`
+- `src/PixelMate/PixelMate.csproj`
+- `src/PixelMate/Program.cs`
 - `src/PixelMate/SettingsWindow.axaml`
 - `src/PixelMate/SettingsWindow.axaml.cs`
 - `src/PixelMate/TutorialWindow.axaml`
 - `src/PixelMate/TutorialWindow.axaml.cs`
 - `tests/PixelMate.Tests/AboutImageLocatorTests.cs`
 - `tests/PixelMate.Tests/AppPreferencesTests.cs`
+- `tests/PixelMate.Tests/EditedImageExportTests.cs`
 - `tests/PixelMate.Tests/PixelAnnotationTests.cs`
 
 ## 三、编译结果
@@ -66,7 +80,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
   -v:minimal
 ```
 
-结果：83 个测试通过，0 个失败，0 个跳过。
+结果：90 个测试通过，0 个失败，0 个跳过。
 
 新增回归覆盖：
 
@@ -75,6 +89,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 关闭目录记忆后不写入目录。
 - 非法放大镜倍率回退到 12×。
 - 图片文件夹关键词匹配、扩展名过滤和缺图回退。
+- 导出图片的默认文件名和测量/批注叠加比例。
 
 ## 四、实际运行测试
 
@@ -92,11 +107,20 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 关于页正确显示 Version 1.0.0、GitHub、QQ 与邮箱。
 - 点击 QQ 号码后显示“QQ 3163170085 已复制”。
 - 关于页成功加载内置头像与微信收款码；二维码边缘清晰、比例正常，没有被拉伸。
+- 双击主窗口自绘标题栏成功最大化，再次双击恢复窗口尺寸。
+- 在 `400 × 300` 测试 WebP 上创建 1 条测量线和 1 条两行中文批注。
+- 按 `⌘S` 打开“保存更改后的图片”对话框，默认文件名为
+  `pixelmate-phase4-colors-已编辑.png`，可选择保存目录。
+- 保存到 `/private/tmp/pixelmate-ui-export-test.png` 后，文件识别为
+  `400 × 300`、8-bit RGBA PNG；打开导出图确认测量线、长度标签和两行批注均在。
+- 设置页、状态栏和数字文本的基线及行高正常。
+- 关于页显示修正后的 GitHub 账号 `xjgd233`。
 
 ## 五、Computer Use 测试结果
 
 - Computer Use 可识别首次指南、主窗口批注工具、批注输入层、设置窗口和关于窗口。
 - 通过真实键盘输入、`⌘+Return` 保存、`⌘C` 复制、设置切换与重启验证完成交互。
+- 通过真实标题栏双击、`⌘S`、系统保存对话框和导出结果截图验证本轮新增交互。
 - 通过截图确认批注浮层、工具栏布局、设置层级和关于页排版正常。
 - 文件选择器与原有测量、取色、放大镜、缩放和平移未发现回归。
 
@@ -104,9 +128,10 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
-- 压缩包大小：约 `46 MB`
+- 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
+- 压缩包大小：`47,267,544` 字节
 - ZIP SHA-256：
-  `2fafe5cbe2c661b36d2305d1f067c881d143d0cc5acdc392bf24956d39bcc3fa`
+  `2f97ae396350da33d61a7e2b66e2a1671f54e324c0ff201d5fee20e34260f1a7`
 - Windows 主程序、Skia、HarfBuzz 和 OpenGL 原生库仍为 x86-64 PE。
 - 阶段 7 验收修正后已重新发布，发布包增加 Per-Monitor V2 高 DPI 清单和
   `WINDOWS-ACCEPTANCE.md` 实机验收清单。
@@ -116,8 +141,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 
 - 已接入用户提供的 `头像.jpg` 和 `收款码.jpg` 作为内置关于页资源；
   `~/Pictures` 中匹配关键词的图片仍会优先覆盖内置资源。
-- GitHub 地址暂按邮箱前缀使用 `https://github.com/xiaowenhao2333`；
-  如实际主页不同，需要替换 `AppIdentity.GitHubUrl` 后重新构建。
+- GitHub 地址已按浏览器实际账号修正为 `https://github.com/xjgd233`。
 - 阶段 7 仍在等待真实 Windows 验收，因此阶段 8 只能记为“提前实现，待补验”。
 - 批注只保存在当前会话中，切换图片或关闭应用后清空，不修改源图片。
 
@@ -143,5 +167,11 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 首次启动指南及从设置重新打开。
 - 关于页联系方式和布局。
 
-头像、赞助码放入图片文件夹后需再次打开关于页确认；如 GitHub 地址不是
-`https://github.com/xiaowenhao2333`，也需补充正确地址。
+头像、赞助码放入图片文件夹后需再次打开关于页确认；GitHub 地址已修正为
+`https://github.com/xjgd233`。
+
+另外请复测：
+
+- 拖动顶部标题栏移动窗口。
+- 点击“保存图片”，选择位置并确认输出 PNG 的尺寸和叠加内容。
+- 查看设置页、状态栏和数字行高是否正常。

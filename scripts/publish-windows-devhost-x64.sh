@@ -23,6 +23,7 @@ rm -rf "$output_dir"
   --self-contained false \
   -p:DebugType=None \
   -p:DebugSymbols=false \
+  -p:NuGetAudit=false \
   -o "$output_dir" \
   -m:1 \
   -nodeReuse:false \

@@ -40,11 +40,13 @@
 - `docs/release-notes-1.0.0.md`
 - `docs/phase-status.md`
 - `docs/reports/phase-7-report.md`
+- `docs/windows-offline-package.md`
 - `scripts/generate-app-icons.py`
 - `scripts/publish-windows-x64.ps1`
 - `scripts/publish-windows-x64.sh`
 - `scripts/publish-windows-devhost-x64.sh`
 - `scripts/sign-windows-x64.ps1`
+- `scripts/windows/START-PIXELMATE.cmd`
 - `scripts/windows/START-PIXELMATE-DEVHOST.cmd`
 - `scripts/macos/Info.plist`
 - `scripts/run-macos.sh`
@@ -104,7 +106,8 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
   -v:minimal
 ```
 
-初次结果为 72 个测试通过；阶段 8 追加回归后，当前代码共 83 个测试通过，
+初次结果为 72 个测试通过；后续批注、设置、导出与字体修正追加回归后，
+当前代码共 90 个测试通过，
 0 个失败，0 个跳过。
 
 Windows 发布命令：
@@ -143,14 +146,17 @@ Windows 发布命令：
 
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
-- 压缩包大小：`48,195,596` 字节
+- 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
+- 压缩包大小：`47,267,544` 字节
 - 解压后目录大小：约 `106 MB`
 - ZIP SHA-256：
-  `2fafe5cbe2c661b36d2305d1f067c881d143d0cc5acdc392bf24956d39bcc3fa`
+  `2f97ae396350da33d61a7e2b66e2a1671f54e324c0ff201d5fee20e34260f1a7`
 - `PixelMate.exe`：PE32+ GUI，x86-64。
 - `PixelMate.dll`：PE32+ .NET 程序集，x86-64。
 - `libSkiaSharp.dll`、`libHarfBuzzSharp.dll`、`av_libglesv2.dll`：x86-64 PE。
 - `.NET 10.0.14` 运行时已包含，发布目录无需用户另装 .NET Runtime。
+- 发布包新增 `START-PIXELMATE.cmd` 与 `OFFLINE-README.md`，明确自包含包与需要系统的
+  `devhost` 包的用途区别。
 - 发布脚本已验证必需文件存在，压缩包完整性检查无错误。
 - ZIP 内已确认没有 `__MACOSX` 或 AppleDouble `._*` 元数据文件。
 - 已从 `PixelMate.exe` 内确认嵌入 `dpiAware=true/pm` 与
@@ -166,6 +172,9 @@ Windows 发布命令：
 - 发布包未进行 Windows 代码签名；Windows SmartScreen 可能显示未知发布者提示。
 - Windows 11 智能应用控制已实际拦截未签名 `PixelMate.exe`，且弹窗没有“仍要运行”
   选项。正式公开分发仍应使用商业 Authenticode 证书；开发验收包仅用于临时测试。
+- 用户实机截图显示直接运行 `PixelMate-devhost-win-x64/PixelMate.exe` 会要求安装
+  .NET 10 Runtime。该目录本来就是框架依赖开发包；本轮已重新生成并单独命名
+  `PixelMate-1.0.0-win-x64-offline.zip`，完整包内含 .NET 10.0.14 运行时。
 
 ## 八、Git 提交记录
 
