@@ -11,6 +11,15 @@ public readonly record struct PixelMeasurement(ImagePoint Start, ImagePoint End)
     public double DeltaY => Math.Abs(End.Y - Start.Y);
 
     public double Length => Math.Sqrt((DeltaX * DeltaX) + (DeltaY * DeltaY));
+
+    public PixelMeasurement ConstrainToAxis()
+    {
+        var deltaX = End.X - Start.X;
+        var deltaY = End.Y - Start.Y;
+        return Math.Abs(deltaX) >= Math.Abs(deltaY)
+            ? new PixelMeasurement(Start, new ImagePoint(End.X, Start.Y))
+            : new PixelMeasurement(Start, new ImagePoint(Start.X, End.Y));
+    }
 }
 
 public static class MeasurementFormatting

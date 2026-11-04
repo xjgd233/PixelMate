@@ -346,14 +346,33 @@ public sealed class ImageCanvas : Control
         }
         else if (_isMeasuring)
         {
-            _measurementDraft = new PixelMeasurement(
-                _measurementStart,
-                Transform.CanvasToImageClamped(new CanvasPoint(position.X, position.Y)));
-            InvalidateVisual();
+            UpdateMeasurementDraft(position, e.KeyModifiers);
         }
 
         _lastPointerCanvasPosition = position;
         ReportPointerPosition(position);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (_isMeasuring
+            && (e.Key == Key.LeftShift || e.Key == Key.RightShift)
+            && _lastPointerCanvasPosition is { } position)
+        {
+            UpdateMeasurementDraft(position, e.KeyModifiers | KeyModifiers.Shift);
+        }
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        base.OnKeyUp(e);
+        if (_isMeasuring
+            && (e.Key == Key.LeftShift || e.Key == Key.RightShift)
+            && _lastPointerCanvasPosition is { } position)
+        {
+            UpdateMeasurementDraft(position, e.KeyModifiers & ~KeyModifiers.Shift);
+        }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -374,7 +393,10 @@ public sealed class ImageCanvas : Control
         {
             var end = Transform.CanvasToImageClamped(
                 new CanvasPoint(e.GetPosition(this).X, e.GetPosition(this).Y));
-            var measurement = new PixelMeasurement(_measurementStart, end);
+            var measurement = CreateMeasurement(
+                _measurementStart,
+                end,
+                e.KeyModifiers);
 
             _isMeasuring = false;
             _measurementDraft = null;
@@ -650,6 +672,26 @@ public sealed class ImageCanvas : Control
         var textX = swatchRect.Right + gap;
         context.DrawText(hexText, new Point(textX, cardRect.Y + 7));
         context.DrawText(rgbText, new Point(textX, cardRect.Y + 24));
+    }
+
+    private static PixelMeasurement CreateMeasurement(
+        ImagePoint start,
+        ImagePoint end,
+        KeyModifiers modifiers)
+    {
+        var measurement = new PixelMeasurement(start, end);
+        return modifiers.HasFlag(KeyModifiers.Shift)
+            ? measurement.ConstrainToAxis()
+            : measurement;
+    }
+
+    private void UpdateMeasurementDraft(Point position, KeyModifiers modifiers)
+    {
+        _measurementDraft = CreateMeasurement(
+            _measurementStart,
+            Transform.CanvasToImageClamped(new CanvasPoint(position.X, position.Y)),
+            modifiers);
+        InvalidateVisual();
     }
 
     private void UpdateCursor()

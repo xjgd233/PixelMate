@@ -32,6 +32,47 @@ public class PixelMeasurementTests
         Assert.Equal(forward.Length, reversed.Length, 6);
     }
 
+    [Fact]
+    public void HorizontalDominantDrag_ConstrainsToHorizontalAxis()
+    {
+        var measurement = new PixelMeasurement(
+            new ImagePoint(10, 10),
+            new ImagePoint(110, 35));
+
+        var constrained = measurement.ConstrainToAxis();
+
+        Assert.Equal(new ImagePoint(10, 10), constrained.Start);
+        Assert.Equal(new ImagePoint(110, 10), constrained.End);
+        Assert.Equal(100, constrained.Length, 6);
+    }
+
+    [Fact]
+    public void VerticalDominantDrag_ConstrainsToVerticalAxis()
+    {
+        var measurement = new PixelMeasurement(
+            new ImagePoint(10, 10),
+            new ImagePoint(25, 110));
+
+        var constrained = measurement.ConstrainToAxis();
+
+        Assert.Equal(new ImagePoint(10, 10), constrained.Start);
+        Assert.Equal(new ImagePoint(10, 110), constrained.End);
+        Assert.Equal(100, constrained.Length, 6);
+    }
+
+    [Fact]
+    public void ReversedConstrainedDrag_PreservesStartPoint()
+    {
+        var measurement = new PixelMeasurement(
+            new ImagePoint(110, 70),
+            new ImagePoint(20, 10));
+
+        var constrained = measurement.ConstrainToAxis();
+
+        Assert.Equal(new ImagePoint(110, 70), constrained.Start);
+        Assert.Equal(new ImagePoint(20, 70), constrained.End);
+    }
+
     [Theory]
     [InlineData(20, 50, 120, 50, 100, 0)]
     [InlineData(50, 20, 50, 100, 0, 80)]

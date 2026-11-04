@@ -202,7 +202,7 @@
                                       Classes="toolChoice"
                                       Click="MeasureTool_Click"
                                       IsEnabled="False"
-                                      ToolTip.Tip="测量像素距离">
+                                      ToolTip.Tip="测量像素距离；按住 Shift 锁定水平或垂直">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <Canvas Width="17" Height="17">
                                     <Path Data="M4,13 L13,4"

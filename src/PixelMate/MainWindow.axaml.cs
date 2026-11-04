@@ -357,7 +357,7 @@ public partial class MainWindow : Window
         SetStatusMessage(
             tool switch
             {
-                ToolMode.Measure => "左键拖动测量，可连续绘制多条测量线",
+                ToolMode.Measure => "左键拖动测量；按住 Shift 锁定水平或垂直",
                 ToolMode.Eyedropper => "移动鼠标读取颜色，左键复制 HEX；状态栏可复制 RGB",
                 ToolMode.Magnifier => "已选择放大镜",
                 _ => string.Empty
