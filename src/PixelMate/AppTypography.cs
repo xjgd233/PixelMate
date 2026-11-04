@@ -4,9 +4,12 @@ namespace PixelMate;
 
 public static class AppTypography
 {
-    public const string SystemFontFamilyName =
-        "Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, Microsoft YaHei, "
-        + "SF Pro Text, SF Pro Display, PingFang SC, Hiragino Sans GB, Noto Sans CJK SC";
+    public static string SystemFontFamilyName =>
+        OperatingSystem.IsMacOS()
+            ? "PingFang SC, Hiragino Sans GB"
+            : OperatingSystem.IsWindows()
+                ? "Microsoft YaHei UI, Segoe UI Variable Text, Segoe UI"
+                : "Noto Sans CJK SC, DejaVu Sans";
 
     public static FontFamily SystemFontFamily { get; } =
         new(SystemFontFamilyName);

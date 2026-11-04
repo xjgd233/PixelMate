@@ -3,35 +3,29 @@
              x:Class="PixelMate.App"
              RequestedThemeVariant="Dark">
 
-    <Application.Resources>
-        <FontFamily x:Key="AppSystemFont">
-            Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, Microsoft YaHei, SF Pro Text, SF Pro Display, PingFang SC, Hiragino Sans GB, Noto Sans CJK SC
-        </FontFamily>
-    </Application.Resources>
-
     <Application.Styles>
         <FluentTheme />
 
         <Style Selector="Window">
-            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource AppSystemFont}" />
         </Style>
         <Style Selector="Button">
-            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource AppSystemFont}" />
         </Style>
         <Style Selector="ToggleButton">
-            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource AppSystemFont}" />
         </Style>
         <Style Selector="TextBlock">
-            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource AppSystemFont}" />
         </Style>
         <Style Selector="TextBox">
-            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource AppSystemFont}" />
         </Style>
         <Style Selector="CheckBox">
-            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource AppSystemFont}" />
         </Style>
         <Style Selector="RadioButton">
-            <Setter Property="FontFamily" Value="{StaticResource AppSystemFont}" />
+            <Setter Property="FontFamily" Value="{DynamicResource AppSystemFont}" />
         </Style>
     </Application.Styles>
 </Application>

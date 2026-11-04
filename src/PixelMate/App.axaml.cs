@@ -9,6 +9,7 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        Resources["AppSystemFont"] = AppTypography.SystemFontFamily;
     }
 
     public override void OnFrameworkInitializationCompleted()

@@ -18,6 +18,8 @@
 - 主窗口自绘标题栏支持拖动移动，双击可在最大化和还原之间切换。
 - 移除 Inter 字体依赖；Windows 优先使用 Segoe UI / 微软雅黑，macOS 使用
   SF Pro / 苹方，避免跨平台字体度量混用。
+- 字体改为运行时按平台绑定单一完整中文字体族：macOS 使用 `PingFang SC`，
+  Windows 使用 `Microsoft YaHei UI`，避免英文与中文字形来自不同字体。
 - 移除单行文本的固定行高和按钮固定高度，改用系统字体自然行框、
   `MinHeight` 与垂直居中，修复 Windows 高 DPI 下文字偏挤或被裁切的问题。
 - 新增设置窗口，可从顶部工具栏的滑杆按钮打开。
@@ -117,6 +119,8 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 保存到 `/private/tmp/pixelmate-ui-export-test.png` 后，文件识别为
   `400 × 300`、8-bit RGBA PNG；打开导出图确认测量线、长度标签和两行批注均在。
 - 设置页、状态栏和数字文本的基线及行高正常。
+- 启动采用 `PingFang SC` 的新版后，设置页和关于页的文字、数字与按钮内容
+  均由同一字体族排版。
 - 关于页显示修正后的 GitHub 账号 `xjgd233`。
 
 ## 五、Computer Use 测试结果
@@ -132,9 +136,9 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,267,679` 字节
+- 压缩包大小：`47,267,594` 字节
 - ZIP SHA-256：
-  `3ca6ba0d4a4f49d6bb1267c6d35efef31ca4ba794dd33a6291020f2f931b56a9`
+  `186d1e2da25efa970c5e6879338382c1e7655e75004c591498fea5ed73a58083`
 - Windows 主程序、Skia、HarfBuzz 和 OpenGL 原生库仍为 x86-64 PE。
 - 阶段 7 验收修正后已重新发布，发布包增加 Per-Monitor V2 高 DPI 清单和
   `WINDOWS-ACCEPTANCE.md` 实机验收清单。

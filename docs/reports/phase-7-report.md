@@ -147,10 +147,10 @@ Windows 发布命令：
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,267,679` 字节
+- 压缩包大小：`47,267,594` 字节
 - 解压后目录大小：约 `106 MB`
 - ZIP SHA-256：
-  `3ca6ba0d4a4f49d6bb1267c6d35efef31ca4ba794dd33a6291020f2f931b56a9`
+  `186d1e2da25efa970c5e6879338382c1e7655e75004c591498fea5ed73a58083`
 - `PixelMate.exe`：PE32+ GUI，x86-64。
 - `PixelMate.dll`：PE32+ .NET 程序集，x86-64。
 - `libSkiaSharp.dll`、`libHarfBuzzSharp.dll`、`av_libglesv2.dll`：x86-64 PE。
