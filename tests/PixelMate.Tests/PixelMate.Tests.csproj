@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/PixelMate/PixelMate.csproj" />
+  </ItemGroup>
+
 </Project>

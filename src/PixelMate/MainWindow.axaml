@@ -1,13 +1,216 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:PixelMate.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="PixelMate.MainWindow"
         Title="PixelMate"
-        Width="960"
-        Height="640"
-        MinWidth="640"
-        MinHeight="420">
-    <Grid />
+        Width="1040"
+        Height="700"
+        MinWidth="680"
+        MinHeight="460"
+        Background="#101217">
+    <Window.Styles>
+        <Style Selector="Button.toolbar">
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Background" Value="#252931" />
+            <Setter Property="Foreground" Value="#E7E9ED" />
+            <Setter Property="BorderBrush" Value="#363B45" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="Button.toolbar:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#323741" />
+        </Style>
+        <Style Selector="Button.toolbar:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D2026" />
+        </Style>
+        <Style Selector="Button.icon">
+            <Setter Property="MinWidth" Value="32" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+        <Style Selector="TextBlock.status">
+            <Setter Property="Foreground" Value="#AEB3BD" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.statusValue">
+            <Setter Property="Foreground" Value="#E2E5EA" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontFamily" Value="SF Mono, Menlo, Consolas, monospace" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="54,*,32">
+        <Border Grid.Row="0"
+                Padding="14,0"
+                Background="#191C22"
+                BorderBrush="#2A2E36"
+                BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            VerticalAlignment="Center">
+                    <Border Width="28"
+                            Height="28"
+                            CornerRadius="7"
+                            Background="#D9FF5A">
+                        <TextBlock Text="P"
+                                   Foreground="#15170E"
+                                   FontWeight="Bold"
+                                   FontSize="15"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="PixelMate"
+                               Foreground="#F4F5F7"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               VerticalAlignment="Center" />
+                    <Border Width="1"
+                            Height="20"
+                            Margin="4,0"
+                            Background="#353A43" />
+                    <Button Classes="toolbar"
+                            Click="OpenImage_Click"
+                            ToolTip.Tip="打开 PNG、JPG、BMP 或 WebP 图片">
+                        <TextBlock Text="打开图片" />
+                    </Button>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1"
+                           x:Name="ToolbarHintTextBlock"
+                           Text="滚轮缩放 · 中键拖动平移"
+                           Foreground="#777E8A"
+                           FontSize="12"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="6"
+                            VerticalAlignment="Center">
+                    <Button x:Name="FitButton"
+                            Classes="toolbar"
+                            Click="Fit_Click"
+                            Content="适应窗口"
+                            IsEnabled="False" />
+                    <Button x:Name="ActualSizeButton"
+                            Classes="toolbar"
+                            Click="ActualSize_Click"
+                            Content="100%"
+                            IsEnabled="False" />
+                    <Border Width="1"
+                            Height="20"
+                            Margin="4,0"
+                            Background="#353A43" />
+                    <Button x:Name="ZoomOutButton"
+                            Classes="toolbar icon"
+                            Click="ZoomOut_Click"
+                            Content="−"
+                            IsEnabled="False"
+                            ToolTip.Tip="缩小" />
+                    <TextBlock x:Name="ZoomTextBlock"
+                               Text="—"
+                               MinWidth="54"
+                               Foreground="#E7E9ED"
+                               FontSize="12"
+                               TextAlignment="Center"
+                               VerticalAlignment="Center" />
+                    <Button x:Name="ZoomInButton"
+                            Classes="toolbar icon"
+                            Click="ZoomIn_Click"
+                            Content="+"
+                            IsEnabled="False"
+                            ToolTip.Tip="放大" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                Background="#101217"
+                BorderBrush="#272B33"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <controls:ImageCanvas x:Name="ImageCanvas" />
+
+                <Border x:Name="EmptyStatePanel"
+                        MaxWidth="430"
+                        Padding="28,24"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#1A1D23"
+                        BorderBrush="#30343C"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        IsHitTestVisible="False">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="拖入一张图片"
+                                   Foreground="#F0F2F4"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="支持 PNG、JPG、JPEG、BMP 与 WebP"
+                                   Foreground="#969DA8"
+                                   FontSize="13"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="也可以点击左上角“打开图片”"
+                                   Foreground="#6F7681"
+                                   FontSize="12"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2"
+                Padding="12,0"
+                Background="#171A1F">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto">
+                <TextBlock x:Name="ImageNameTextBlock"
+                           Grid.Column="0"
+                           Classes="statusValue"
+                           Text="未打开图片"
+                           MaxWidth="260"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="ImageSizeTextBlock"
+                           Grid.Column="1"
+                           Classes="status"
+                           Margin="12,0,0,0"
+                           Text="— × —" />
+                <TextBlock x:Name="StatusMessageTextBlock"
+                           Grid.Column="2"
+                           Classes="status"
+                           Margin="18,0"
+                           Text=""
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="PointerTextBlock"
+                           Grid.Column="3"
+                           Classes="statusValue"
+                           MinWidth="104"
+                           Text="X —  Y —"
+                           TextAlignment="Right" />
+                <TextBlock x:Name="HexTextBlock"
+                           Grid.Column="4"
+                           Classes="status"
+                           Margin="18,0,0,0"
+                           MinWidth="80"
+                           Text="HEX —"
+                           TextAlignment="Right" />
+                <TextBlock x:Name="StatusZoomTextBlock"
+                           Grid.Column="5"
+                           Classes="statusValue"
+                           Margin="18,0,0,0"
+                           MinWidth="56"
+                           Text="—"
+                           TextAlignment="Right" />
+            </Grid>
+        </Border>
+    </Grid>
 </Window>
