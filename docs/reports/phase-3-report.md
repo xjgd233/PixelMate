@@ -101,7 +101,7 @@
 
 阶段提交信息：`feat: implement phase 3 pixel measurements`
 
-实际提交哈希将在实现提交完成后同步到状态账本。
+提交哈希：`e5d946a`
 
 ## 八、等待用户验收
 
