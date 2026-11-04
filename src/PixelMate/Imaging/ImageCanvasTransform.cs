@@ -175,6 +175,18 @@ public sealed class ImageCanvasTransform
         return true;
     }
 
+    public ImagePoint CanvasToImageClamped(CanvasPoint canvasPoint)
+    {
+        if (!HasImage || Scale <= 0)
+        {
+            return default;
+        }
+
+        return new ImagePoint(
+            Math.Clamp((canvasPoint.X - OffsetX) / Scale, 0, _imageSize.Width),
+            Math.Clamp((canvasPoint.Y - OffsetY) / Scale, 0, _imageSize.Height));
+    }
+
     public CanvasPoint ImageToCanvas(ImagePoint imagePoint)
     {
         return new CanvasPoint(

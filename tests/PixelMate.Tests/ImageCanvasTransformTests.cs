@@ -120,6 +120,38 @@ public class ImageCanvasTransformTests
         Assert.Equal(ImageCanvasTransform.MinimumScale, transform.Scale);
     }
 
+    [Theory]
+    [InlineData(0.5)]
+    [InlineData(2.0)]
+    public void ImageCoordinates_StayStableThroughZoomAndPan(double scale)
+    {
+        var transform = CreateTransform(1000, 750, 800, 600);
+        transform.ZoomTo(scale, new CanvasPoint(400, 300));
+        transform.PanBy(-120, 47);
+        var imagePoint = new ImagePoint(321.25, 487.75);
+
+        var canvasPoint = transform.ImageToCanvas(imagePoint);
+        Assert.True(transform.TryCanvasToImage(canvasPoint, out var roundTrip));
+
+        Assert.Equal(imagePoint.X, roundTrip.X, 6);
+        Assert.Equal(imagePoint.Y, roundTrip.Y, 6);
+    }
+
+    [Fact]
+    public void CanvasToImageClamped_ConstrainsDragToOriginalImageBounds()
+    {
+        var transform = CreateTransform(100, 80, 500, 500);
+        transform.ShowActualSize();
+
+        var upperLeft = transform.CanvasToImageClamped(
+            new CanvasPoint(transform.OffsetX - 50, transform.OffsetY - 50));
+        var lowerRight = transform.CanvasToImageClamped(
+            new CanvasPoint(transform.OffsetX + 150, transform.OffsetY + 130));
+
+        Assert.Equal(new ImagePoint(0, 0), upperLeft);
+        Assert.Equal(new ImagePoint(100, 80), lowerRight);
+    }
+
     private static ImageCanvasTransform CreateTransform(
         double imageWidth,
         double imageHeight,

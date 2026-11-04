@@ -4,6 +4,8 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PixelMate.Imaging;
+using PixelMate.Measurement;
+using System.Globalization;
 
 namespace PixelMate.Controls;
 
@@ -14,14 +16,32 @@ public sealed class ImageCanvas : Control
     private static readonly IBrush CheckerDarkBrush = new SolidColorBrush(Color.Parse("#18181B"));
     private static readonly IBrush ImageBorderBrush = new SolidColorBrush(Color.Parse("#4B4B52"));
     private static readonly IPen ImageBorderPen = new Pen(ImageBorderBrush, 1);
+    private static readonly IBrush MeasurementBrush = new SolidColorBrush(Color.Parse("#FFB454"));
+    private static readonly IBrush MeasurementShadowBrush = new SolidColorBrush(Color.Parse("#D908080A"));
+    private static readonly IBrush MeasurementEndpointInnerBrush = new SolidColorBrush(Color.Parse("#FFE0A0"));
+    private static readonly IBrush MeasurementLabelBackgroundBrush = new SolidColorBrush(Color.Parse("#F01A1A1E"));
+    private static readonly IBrush MeasurementLabelTextBrush = new SolidColorBrush(Color.Parse("#FFF7EA"));
+    private static readonly IPen MeasurementShadowPen = new Pen(MeasurementShadowBrush, 4);
+    private static readonly IPen MeasurementPen = new Pen(MeasurementBrush, 1.6);
+    private static readonly IPen MeasurementLabelBorderPen =
+        new Pen(new SolidColorBrush(Color.Parse("#995E5140")), 1);
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
+    private static readonly Cursor MeasuringCursor = new(StandardCursorType.Cross);
+    private static readonly Typeface MeasurementTypeface =
+        new(new FontFamily("SF Mono, Menlo, Consolas, monospace"));
 
     private Bitmap? _bitmap;
     private bool _isPanning;
+    private bool _isMeasurementEnabled;
+    private bool _isMeasuring;
+    private IPointer? _measurementPointer;
+    private ImagePoint _measurementStart;
+    private PixelMeasurement? _measurementDraft;
     private Point _lastPointerPosition;
     private int _lastPixelX = -1;
     private int _lastPixelY = -1;
     private bool _lastPixelInside;
+    private readonly List<PixelMeasurement> _measurements = [];
 
     public ImageCanvas()
     {
@@ -34,7 +54,13 @@ public sealed class ImageCanvas : Control
 
     public event EventHandler<ImagePointerEventArgs>? PointerImageChanged;
 
+    public event EventHandler? MeasurementsChanged;
+
     public ImageCanvasTransform Transform { get; } = new();
+
+    public IReadOnlyList<PixelMeasurement> Measurements => _measurements;
+
+    public bool HasMeasurements => _measurements.Count > 0;
 
     public void SetImage(Bitmap bitmap)
     {
@@ -52,6 +78,7 @@ public sealed class ImageCanvas : Control
             Transform.SetViewport(Bounds.Width, Bounds.Height);
         }
 
+        ClearMeasurements();
         previous?.Dispose();
         InvalidateVisual();
         ViewChanged?.Invoke(this, EventArgs.Empty);
@@ -78,6 +105,53 @@ public sealed class ImageCanvas : Control
         ViewChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    public void SetMeasurementEnabled(bool isEnabled)
+    {
+        if (_isMeasurementEnabled == isEnabled)
+        {
+            return;
+        }
+
+        _isMeasurementEnabled = isEnabled;
+        if (!isEnabled)
+        {
+            CancelMeasurementDraft();
+        }
+
+        UpdateCursor();
+    }
+
+    public void ClearMeasurements()
+    {
+        var hadMeasurements = _measurements.Count > 0 || _measurementDraft is not null;
+        _measurements.Clear();
+        _isMeasuring = false;
+        _measurementDraft = null;
+        _measurementPointer?.Capture(null);
+        _measurementPointer = null;
+
+        if (hadMeasurements)
+        {
+            InvalidateVisual();
+            MeasurementsChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public void CancelMeasurementDraft()
+    {
+        if (!_isMeasuring && _measurementDraft is null)
+        {
+            return;
+        }
+
+        _isMeasuring = false;
+        _measurementDraft = null;
+        _measurementPointer?.Capture(null);
+        _measurementPointer = null;
+        UpdateCursor();
+        InvalidateVisual();
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -102,6 +176,16 @@ public sealed class ImageCanvas : Control
                 new Rect(_bitmap.Size),
                 imageRect);
             context.DrawRectangle(null, ImageBorderPen, imageRect);
+
+            foreach (var measurement in _measurements)
+            {
+                DrawMeasurement(context, measurement);
+            }
+
+            if (_measurementDraft is { } draft)
+            {
+                DrawMeasurement(context, draft);
+            }
         }
     }
 
@@ -126,6 +210,22 @@ public sealed class ImageCanvas : Control
             e.Pointer.Capture(this);
             Cursor = PanningCursor;
             e.Handled = true;
+            return;
+        }
+
+        if (_isMeasurementEnabled
+            && point.Properties.IsLeftButtonPressed
+            && Transform.TryCanvasToImage(
+                new CanvasPoint(point.Position.X, point.Position.Y),
+                out var start))
+        {
+            _isMeasuring = true;
+            _measurementPointer = e.Pointer;
+            _measurementStart = start;
+            _measurementDraft = new PixelMeasurement(start, start);
+            e.Pointer.Capture(this);
+            InvalidateVisual();
+            e.Handled = true;
         }
     }
 
@@ -142,6 +242,13 @@ public sealed class ImageCanvas : Control
             InvalidateVisual();
             ViewChanged?.Invoke(this, EventArgs.Empty);
         }
+        else if (_isMeasuring)
+        {
+            _measurementDraft = new PixelMeasurement(
+                _measurementStart,
+                Transform.CanvasToImageClamped(new CanvasPoint(position.X, position.Y)));
+            InvalidateVisual();
+        }
 
         ReportPointerPosition(position);
     }
@@ -154,9 +261,48 @@ public sealed class ImageCanvas : Control
         {
             _isPanning = false;
             e.Pointer.Capture(null);
-            Cursor = Cursor.Default;
+            UpdateCursor();
             e.Handled = true;
             ReportPointerPosition(e.GetPosition(this));
+            return;
+        }
+
+        if (_isMeasuring && e.InitialPressMouseButton == MouseButton.Left)
+        {
+            var end = Transform.CanvasToImageClamped(
+                new CanvasPoint(e.GetPosition(this).X, e.GetPosition(this).Y));
+            var measurement = new PixelMeasurement(_measurementStart, end);
+
+            _isMeasuring = false;
+            _measurementDraft = null;
+            _measurementPointer = null;
+            e.Pointer.Capture(null);
+            UpdateCursor();
+
+            if (measurement.Length > 0.001)
+            {
+                _measurements.Add(measurement);
+                MeasurementsChanged?.Invoke(this, EventArgs.Empty);
+            }
+
+            InvalidateVisual();
+            ReportPointerPosition(e.GetPosition(this));
+            e.Handled = true;
+        }
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        if (_isPanning)
+        {
+            _isPanning = false;
+            UpdateCursor();
+        }
+
+        if (_isMeasuring)
+        {
+            CancelMeasurementDraft();
         }
     }
 
@@ -192,6 +338,7 @@ public sealed class ImageCanvas : Control
     {
         var bitmap = _bitmap;
         _bitmap = null;
+        ClearMeasurements();
         bitmap?.Dispose();
     }
 
@@ -247,6 +394,80 @@ public sealed class ImageCanvas : Control
                 context.FillRectangle(CheckerLightBrush, cell);
             }
         }
+    }
+
+    private void DrawMeasurement(DrawingContext context, PixelMeasurement measurement)
+    {
+        var start = Transform.ImageToCanvas(measurement.Start);
+        var end = Transform.ImageToCanvas(measurement.End);
+        var startPoint = new Point(start.X, start.Y);
+        var endPoint = new Point(end.X, end.Y);
+
+        context.DrawLine(MeasurementShadowPen, startPoint, endPoint);
+        context.DrawLine(MeasurementPen, startPoint, endPoint);
+        DrawEndpoint(context, startPoint);
+        DrawEndpoint(context, endPoint);
+        DrawMeasurementLabel(context, measurement, startPoint, endPoint);
+    }
+
+    private static void DrawEndpoint(DrawingContext context, Point point)
+    {
+        context.DrawEllipse(MeasurementShadowBrush, null, point, 5.5, 5.5);
+        context.DrawEllipse(MeasurementEndpointInnerBrush, null, point, 3.2, 3.2);
+    }
+
+    private void DrawMeasurementLabel(
+        DrawingContext context,
+        PixelMeasurement measurement,
+        Point start,
+        Point end)
+    {
+        var text = new FormattedText(
+            MeasurementFormatting.FormatLabel(measurement),
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            11,
+            MeasurementLabelTextBrush);
+
+        const double horizontalPadding = 8;
+        const double verticalPadding = 4;
+        var width = text.WidthIncludingTrailingWhitespace + (horizontalPadding * 2);
+        var height = text.Height + (verticalPadding * 2);
+
+        var dx = end.X - start.X;
+        var dy = end.Y - start.Y;
+        var lineLength = Math.Sqrt((dx * dx) + (dy * dy));
+        var normalX = lineLength > 0.001 ? -dy / lineLength : 0;
+        var normalY = lineLength > 0.001 ? dx / lineLength : -1;
+        var middleX = (start.X + end.X) / 2;
+        var middleY = (start.Y + end.Y) / 2;
+        const double labelOffset = 20;
+
+        var left = middleX + (normalX * labelOffset) - (width / 2);
+        var top = middleY + (normalY * labelOffset) - (height / 2);
+        left = Math.Clamp(left, 6, Math.Max(6, Bounds.Width - width - 6));
+        top = Math.Clamp(top, 6, Math.Max(6, Bounds.Height - height - 6));
+
+        var labelRect = new Rect(left, top, width, height);
+        context.DrawRectangle(
+            MeasurementLabelBackgroundBrush,
+            MeasurementLabelBorderPen,
+            labelRect,
+            5,
+            5);
+        context.DrawText(
+            text,
+            new Point(labelRect.X + horizontalPadding, labelRect.Y + verticalPadding));
+    }
+
+    private void UpdateCursor()
+    {
+        Cursor = _isPanning
+            ? PanningCursor
+            : _isMeasurementEnabled && _bitmap is not null
+                ? MeasuringCursor
+                : Cursor.Default;
     }
 }
 

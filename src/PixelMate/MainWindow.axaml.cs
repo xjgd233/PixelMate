@@ -1,10 +1,12 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using PixelMate.Imaging;
+using PixelMate.Measurement;
 using PixelMate.Preferences;
 using System.Globalization;
 
@@ -47,6 +49,7 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DropEvent, OnDrop);
         ImageCanvas.ViewChanged += ImageCanvas_ViewChanged;
         ImageCanvas.PointerImageChanged += ImageCanvas_PointerImageChanged;
+        ImageCanvas.MeasurementsChanged += ImageCanvas_MeasurementsChanged;
         KeyDown += MainWindow_KeyDown;
         Closed += MainWindow_Closed;
     }
@@ -162,6 +165,17 @@ public partial class MainWindow : Window
         SetActiveTool(ToolMode.Magnifier);
     }
 
+    private async void CopyMeasurements_Click(object? sender, RoutedEventArgs e)
+    {
+        await CopyMeasurementsAsync();
+    }
+
+    private void ClearMeasurements_Click(object? sender, RoutedEventArgs e)
+    {
+        ImageCanvas.ClearMeasurements();
+        SetStatusMessage("已清除全部测量", false);
+    }
+
     private async void MainWindow_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.O
@@ -170,6 +184,25 @@ public partial class MainWindow : Window
         {
             e.Handled = true;
             await OpenImagePickerAsync();
+            return;
+        }
+
+        if (e.Key == Key.C
+            && ImageCanvas.HasMeasurements
+            && (e.KeyModifiers.HasFlag(KeyModifiers.Meta)
+                || e.KeyModifiers.HasFlag(KeyModifiers.Control)))
+        {
+            e.Handled = true;
+            await CopyMeasurementsAsync();
+            return;
+        }
+
+        if ((e.Key == Key.Back || e.Key == Key.Delete)
+            && ImageCanvas.HasMeasurements)
+        {
+            e.Handled = true;
+            ImageCanvas.ClearMeasurements();
+            SetStatusMessage("已清除全部测量", false);
         }
     }
 
@@ -214,6 +247,51 @@ public partial class MainWindow : Window
         StatusZoomTextBlock.Text = zoomText;
     }
 
+    private void ImageCanvas_MeasurementsChanged(object? sender, EventArgs e)
+    {
+        UpdateMeasurementActions();
+
+        if (ImageCanvas.HasMeasurements)
+        {
+            var count = ImageCanvas.Measurements.Count;
+            SetStatusMessage($"已记录 {count} 条测量", false);
+        }
+    }
+
+    private void UpdateMeasurementActions()
+    {
+        var count = ImageCanvas.Measurements.Count;
+        MeasurementActionsPanel.IsVisible = count > 0;
+        MeasurementCountTextBlock.Text = $"{count} 条";
+    }
+
+    private async Task CopyMeasurementsAsync()
+    {
+        if (!ImageCanvas.HasMeasurements)
+        {
+            SetStatusMessage("还没有可复制的测量结果", true);
+            return;
+        }
+
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is null)
+        {
+            SetStatusMessage("当前系统剪贴板不可用", true);
+            return;
+        }
+
+        try
+        {
+            await clipboard.SetTextAsync(
+                MeasurementFormatting.FormatClipboard(ImageCanvas.Measurements));
+            SetStatusMessage($"已复制 {ImageCanvas.Measurements.Count} 条测量结果", false);
+        }
+        catch (Exception)
+        {
+            SetStatusMessage("复制测量结果失败", true);
+        }
+    }
+
     private void SetImageControlsEnabled(bool isEnabled)
     {
         FitButton.IsEnabled = isEnabled;
@@ -243,11 +321,12 @@ public partial class MainWindow : Window
         MeasureToolButton.IsChecked = tool == ToolMode.Measure;
         EyedropperToolButton.IsChecked = tool == ToolMode.Eyedropper;
         MagnifierToolButton.IsChecked = tool == ToolMode.Magnifier;
+        ImageCanvas.SetMeasurementEnabled(tool == ToolMode.Measure);
 
         SetStatusMessage(
             tool switch
             {
-                ToolMode.Measure => "已选择测量工具",
+                ToolMode.Measure => "左键拖动测量，可连续绘制多条测量线",
                 ToolMode.Eyedropper => "已选择取色工具",
                 ToolMode.Magnifier => "已选择放大镜",
                 _ => string.Empty
