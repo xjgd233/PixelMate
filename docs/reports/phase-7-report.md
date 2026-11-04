@@ -1,6 +1,8 @@
 # 阶段 7：Windows x64 正式发布
 
-执行日期：2026-11-04
+初次执行日期：2026-11-04
+
+验收复跑日期：2026-11-05
 
 阶段状态：待验收
 
@@ -110,6 +112,9 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 当前代码共 94 个测试通过，
 0 个失败，0 个跳过。
 
+2026-11-05 复跑结果：Release 构建 0 个警告、0 个错误；
+`PixelMate.Tests` 共 94 项通过，0 项失败，0 项跳过。
+
 Windows 发布命令：
 
 ```sh
@@ -133,6 +138,15 @@ Windows 发布命令：
 - 放大到 `1101%` 后，按住空格并拖动画布，彩色象限边界按拖动方向移动，
   证明临时抓手模式生效。
 - `Delete` 成功清除测量；原有测量、取色、放大镜、透明背景和状态栏状态均正常。
+- 2026-11-05 使用最新 Debug 构建再次启动真实窗口：
+  - 通过系统文件选择器依次打开 PNG、JPG、BMP、WebP，文件名和原始尺寸均正确。
+  - 测量工具成功记录 1 条测量；撤销后结果消失，前进后结果恢复。
+  - 取色工具分别读取红色 `#E04848` 和透明像素 `#00000000`。
+  - 滚轮缩放从 `451%` 更新到 `566%`；`⌘1` 为 `100%`，`⌘0` 恢复适应窗口。
+  - 保存导出得到 `200 × 120` PNG，保留 Alpha 通道和测量标注。
+  - 设置页版本显示 `PixelMate 1.0.0`；关于页头像、联系方式、GitHub 和赞助码正常显示。
+- 2026-11-05 的发布包已包含撤销/前进提交 `02f3741`，修复了上一包早于
+  该提交生成的问题。
 
 ## 五、Computer Use 测试结果
 
@@ -147,10 +161,12 @@ Windows 发布命令：
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,271,670` 字节
+- 压缩包大小：`47,271,877` 字节
 - 解压后目录大小：约 `106 MB`
 - ZIP SHA-256：
-  `dd1c0c4b85ce662c1a09766322af222b2419ee12be2c6e35da3865177f28bdee`
+  `82a00400b65b50cc3424d758c3a16684f5102dc4fd3ca33fdf3b556623fcd657`
+- `devhost` ZIP SHA-256：
+  `f2c2eedc561b693d102714c4de0c010eeb969eeeb1852d66313a0a9f04968671`
 - `PixelMate.exe`：PE32+ GUI，x86-64。
 - `PixelMate.dll`：PE32+ .NET 程序集，x86-64。
 - `libSkiaSharp.dll`、`libHarfBuzzSharp.dll`、`av_libglesv2.dll`：x86-64 PE。
@@ -175,6 +191,8 @@ Windows 发布命令：
 - 用户实机截图显示直接运行 `PixelMate-devhost-win-x64/PixelMate.exe` 会要求安装
   .NET 10 Runtime。该目录本来就是框架依赖开发包；本轮已重新生成并单独命名
   `PixelMate-1.0.0-win-x64-offline.zip`，完整包内含 .NET 10.0.14 运行时。
+- 2026-11-05 检查 UURemote 时，两台 Windows 设备均显示离线，客户端同时报告
+  `无法连接至服务器，错误码：2003`，因此当前无法继续远程 Windows 实机验收。
 
 ## 八、Git 提交记录
 
