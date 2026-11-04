@@ -1,0 +1,218 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PixelMate.AboutWindow"
+        Title="关于 PixelMate"
+        Width="760"
+        Height="620"
+        MinWidth="680"
+        MinHeight="560"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        Background="#0B0B0D">
+    <Window.Resources>
+        <SolidColorBrush x:Key="DialogSurfaceBrush" Color="#1B1B1F" />
+        <SolidColorBrush x:Key="DialogBorderBrush" Color="#34343B" />
+        <SolidColorBrush x:Key="DialogTextBrush" Color="#F2F2F4" />
+        <SolidColorBrush x:Key="DialogMutedBrush" Color="#A6A6AC" />
+        <SolidColorBrush x:Key="DialogAccentBrush" Color="#0A84FF" />
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.contact">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="11,3" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Background" Value="#2B2B2F" />
+            <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+        <Style Selector="TextBlock.contactLabel">
+            <Setter Property="Foreground" Value="#74747B" />
+            <Setter Property="FontSize" Value="10" />
+        </Style>
+        <Style Selector="Border.aboutCard">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Background" Value="{StaticResource DialogSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DialogBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <Grid Grid.Row="0" ColumnDefinitions="128,*" ColumnSpacing="20">
+            <Border Width="112"
+                    Height="112"
+                    CornerRadius="24"
+                    Background="#22262D"
+                    BorderBrush="#445062"
+                    BorderThickness="1"
+                    ClipToBounds="True">
+                <Grid>
+                    <Image x:Name="AvatarImage"
+                           Stretch="UniformToFill"
+                           IsVisible="False" />
+                    <StackPanel x:Name="AvatarPlaceholder"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="6">
+                        <TextBlock Text="笑"
+                                   Foreground="#B8D7FF"
+                                   FontSize="38"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="图片文件夹 · 头像"
+                                   Foreground="#7F8A99"
+                                   FontSize="9"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <StackPanel Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Spacing="8">
+                <TextBlock Text="PixelMate"
+                           Foreground="{StaticResource DialogTextBrush}"
+                           FontSize="28"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="轻量级图片像素测量、取色与批注工具"
+                           Foreground="{StaticResource DialogMutedBrush}"
+                           FontSize="13" />
+                <TextBlock x:Name="VersionTextBlock"
+                           Foreground="#808089"
+                           FontFamily="SF Mono, Menlo, Consolas, monospace"
+                           FontSize="11" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1"
+              Margin="0,18,0,18"
+              ColumnDefinitions="*,244"
+              ColumnSpacing="14">
+            <Border Classes="aboutCard" Grid.Column="0">
+                <StackPanel Spacing="13">
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="联系作者"
+                                   Foreground="{StaticResource DialogTextBrush}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="笑脸152 · 问题反馈、使用交流与功能建议"
+                                   Foreground="{StaticResource DialogMutedBrush}"
+                                   FontSize="11" />
+                    </StackPanel>
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+                        <TextBlock Grid.Row="0"
+                                   Text="GitHub"
+                                   Classes="contactLabel"
+                                   VerticalAlignment="Center" />
+                        <Button x:Name="GitHubButton"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Classes="contact"
+                                Margin="12,0,0,0"
+                                Click="GitHub_Click"
+                                Content="xiaowenhao2333" />
+
+                        <TextBlock Grid.Row="1"
+                                   Text="QQ"
+                                   Classes="contactLabel"
+                                   VerticalAlignment="Center" />
+                        <Button x:Name="QqButton"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Classes="contact"
+                                Margin="12,0,0,0"
+                                Click="Qq_Click"
+                                Content="3163170085 · 点击复制" />
+
+                        <TextBlock Grid.Row="2"
+                                   Text="邮箱"
+                                   Classes="contactLabel"
+                                   VerticalAlignment="Center" />
+                        <Button x:Name="EmailButton"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Classes="contact"
+                                Margin="12,0,0,0"
+                                Click="Email_Click"
+                                Content="xiaowenhao2333@gmail.com" />
+
+                        <TextBlock x:Name="ContactStatusTextBlock"
+                                   Grid.Row="3"
+                                   Grid.ColumnSpan="2"
+                                   Foreground="#63E6BE"
+                                   FontSize="10"
+                                   MinHeight="16" />
+                    </Grid>
+                    <Border Height="1" Background="#303038" />
+                    <TextBlock Text="图像只在本地处理，不上传、不修改源文件。"
+                               Foreground="{StaticResource DialogMutedBrush}"
+                               FontSize="11"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="aboutCard" Grid.Column="1">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="支持 PixelMate"
+                                   Foreground="{StaticResource DialogTextBrush}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="如果它帮你节省了时间，欢迎支持后续维护。"
+                                   Foreground="{StaticResource DialogMutedBrush}"
+                                   FontSize="10"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Border Grid.Row="1"
+                            Width="180"
+                            Height="180"
+                            Margin="0,12"
+                            CornerRadius="12"
+                            Background="#F5F5F7"
+                            BorderBrush="#45454E"
+                            BorderThickness="1"
+                            HorizontalAlignment="Center"
+                            ClipToBounds="True">
+                        <Grid>
+                            <Image x:Name="SponsorImage"
+                                   Stretch="Uniform"
+                                   IsVisible="False" />
+                            <StackPanel x:Name="SponsorPlaceholder"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Spacing="6">
+                                <TextBlock Text="赞助码"
+                                           Foreground="#4A4A52"
+                                           FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="图片文件夹 · 赞助码"
+                                           Foreground="#85858D"
+                                           FontSize="10"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <TextBlock Grid.Row="2"
+                               Text="自愿赞助，感谢每一份支持。"
+                               Foreground="{StaticResource DialogMutedBrush}"
+                               FontSize="10"
+                               HorizontalAlignment="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+            <TextBlock Text="Built with .NET 10 · Avalonia"
+                       Foreground="#74747B"
+                       FontSize="10"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1"
+                    Classes="contact"
+                    Padding="18,3"
+                    Click="Close_Click"
+                    Content="关闭" />
+        </Grid>
+    </Grid>
+</Window>

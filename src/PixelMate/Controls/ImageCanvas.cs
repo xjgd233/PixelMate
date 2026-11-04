@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using PixelMate.Annotations;
 using PixelMate.Colors;
 using PixelMate.Imaging;
 using PixelMate.Magnifier;
@@ -56,6 +57,18 @@ public sealed class ImageCanvas : Control
     private static readonly IPen MeasurementPen = new Pen(MeasurementBrush, 1.1);
     private static readonly IPen MeasurementLabelBorderPen =
         new Pen(new SolidColorBrush(Color.Parse("#995E5140")), 1);
+    private static readonly IBrush AnnotationBrush =
+        new SolidColorBrush(Color.Parse("#63E6BE"));
+    private static readonly IBrush AnnotationInnerBrush =
+        new SolidColorBrush(Color.Parse("#F2FFFC"));
+    private static readonly IBrush AnnotationLabelBackgroundBrush =
+        new SolidColorBrush(Color.Parse("#F0121A18"));
+    private static readonly IBrush AnnotationLabelTextBrush =
+        new SolidColorBrush(Color.Parse("#EFFFFB"));
+    private static readonly IPen AnnotationLeaderPen =
+        new Pen(new SolidColorBrush(Color.Parse("#CC63E6BE")), 1.2);
+    private static readonly IPen AnnotationBorderPen =
+        new Pen(new SolidColorBrush(Color.Parse("#6663E6BE")), 1);
     private static readonly Cursor PanReadyCursor = new(StandardCursorType.Hand);
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
     private static readonly Cursor MeasuringCursor = new(StandardCursorType.Cross);
@@ -71,11 +84,13 @@ public sealed class ImageCanvas : Control
     private bool _isMeasurementEnabled;
     private bool _isEyedropperEnabled;
     private bool _isMagnifierEnabled;
+    private bool _isAnnotationEnabled;
     private bool _isMeasuring;
     private int _magnifierScale = 12;
     private IPointer? _measurementPointer;
     private ImagePoint _measurementStart;
     private PixelMeasurement? _measurementDraft;
+    private ImagePoint? _annotationDraftAnchor;
     private Point _lastPointerPosition;
     private int _lastPixelX = -1;
     private int _lastPixelY = -1;
@@ -83,6 +98,7 @@ public sealed class ImageCanvas : Control
     private PixelColor? _sampledColor;
     private Point? _lastPointerCanvasPosition;
     private readonly List<PixelMeasurement> _measurements = [];
+    private readonly List<PixelAnnotation> _annotations = [];
 
     public ImageCanvas()
     {
@@ -99,11 +115,19 @@ public sealed class ImageCanvas : Control
 
     public event EventHandler<ColorPickedEventArgs>? ColorPicked;
 
+    public event EventHandler<AnnotationRequestedEventArgs>? AnnotationRequested;
+
+    public event EventHandler? AnnotationsChanged;
+
     public ImageCanvasTransform Transform { get; } = new();
 
     public IReadOnlyList<PixelMeasurement> Measurements => _measurements;
 
     public bool HasMeasurements => _measurements.Count > 0;
+
+    public IReadOnlyList<PixelAnnotation> Annotations => _annotations;
+
+    public bool HasAnnotations => _annotations.Count > 0;
 
     public int MagnifierScale => _magnifierScale;
 
@@ -170,6 +194,7 @@ public sealed class ImageCanvas : Control
         }
 
         ClearMeasurements();
+        ClearAnnotations();
         previous?.Dispose();
         InvalidateVisual();
         ViewChanged?.Invoke(this, EventArgs.Empty);
@@ -277,6 +302,22 @@ public sealed class ImageCanvas : Control
         InvalidateVisual();
     }
 
+    public void SetAnnotationEnabled(bool isEnabled)
+    {
+        if (_isAnnotationEnabled == isEnabled)
+        {
+            return;
+        }
+
+        _isAnnotationEnabled = isEnabled;
+        if (!isEnabled)
+        {
+            CancelAnnotationDraft();
+        }
+
+        UpdateCursor();
+    }
+
     public void SetTemporaryPanEnabled(bool isEnabled)
     {
         if (_isTemporaryPanEnabled == isEnabled)
@@ -319,6 +360,43 @@ public sealed class ImageCanvas : Control
         InvalidateVisual();
     }
 
+    public void CommitAnnotation(string text)
+    {
+        if (_annotationDraftAnchor is not { } anchor)
+        {
+            return;
+        }
+
+        var annotation = PixelAnnotation.Create(anchor, text);
+        _annotations.Add(annotation);
+        _annotationDraftAnchor = null;
+        InvalidateVisual();
+        AnnotationsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void CancelAnnotationDraft()
+    {
+        if (_annotationDraftAnchor is null)
+        {
+            return;
+        }
+
+        _annotationDraftAnchor = null;
+        InvalidateVisual();
+    }
+
+    public void ClearAnnotations()
+    {
+        var hadAnnotations = _annotations.Count > 0 || _annotationDraftAnchor is not null;
+        _annotations.Clear();
+        _annotationDraftAnchor = null;
+        if (hadAnnotations)
+        {
+            InvalidateVisual();
+            AnnotationsChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -349,9 +427,19 @@ public sealed class ImageCanvas : Control
                 DrawMeasurement(context, measurement);
             }
 
+            foreach (var annotation in _annotations)
+            {
+                DrawAnnotation(context, annotation);
+            }
+
             if (_measurementDraft is { } draft)
             {
                 DrawMeasurement(context, draft);
+            }
+
+            if (_annotationDraftAnchor is { } annotationAnchor)
+            {
+                DrawAnnotationMarker(context, Transform.ImageToCanvas(annotationAnchor));
             }
 
             DrawEyedropperPreview(context);
@@ -397,6 +485,21 @@ public sealed class ImageCanvas : Control
             _measurementDraft = new PixelMeasurement(start, start);
             e.Pointer.Capture(this);
             InvalidateVisual();
+            e.Handled = true;
+            return;
+        }
+
+        if (_isAnnotationEnabled
+            && point.Properties.IsLeftButtonPressed
+            && Transform.TryCanvasToImage(
+                new CanvasPoint(point.Position.X, point.Position.Y),
+                out var annotationAnchor))
+        {
+            _annotationDraftAnchor = annotationAnchor;
+            InvalidateVisual();
+            AnnotationRequested?.Invoke(
+                this,
+                new AnnotationRequestedEventArgs(annotationAnchor));
             e.Handled = true;
             return;
         }
@@ -559,6 +662,7 @@ public sealed class ImageCanvas : Control
         _lastPixelInside = false;
         _lastPointerCanvasPosition = null;
         ClearMeasurements();
+        ClearAnnotations();
         bitmap?.Dispose();
     }
 
@@ -934,6 +1038,97 @@ public sealed class ImageCanvas : Control
         context.DrawText(rgbText, new Point(textX, cardRect.Y + 24));
     }
 
+    private void DrawAnnotation(
+        DrawingContext context,
+        PixelAnnotation annotation)
+    {
+        var anchor = Transform.ImageToCanvas(annotation.Anchor);
+        var anchorPoint = new Point(anchor.X, anchor.Y);
+        var displayText = new FormattedText(
+            WrapAnnotationText(annotation.Text),
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            MeasurementTypeface,
+            11,
+            AnnotationLabelTextBrush);
+
+        const double horizontalPadding = 8;
+        const double verticalPadding = 5;
+        const double labelGap = 12;
+        var width = Math.Min(
+            260,
+            displayText.WidthIncludingTrailingWhitespace + (horizontalPadding * 2));
+        var height = displayText.Height + (verticalPadding * 2);
+        var left = anchor.X + labelGap;
+        var top = anchor.Y - height - labelGap;
+        if (left + width > Bounds.Width - 6)
+        {
+            left = anchor.X - width - labelGap;
+        }
+
+        if (top < 6)
+        {
+            top = anchor.Y + labelGap;
+        }
+
+        left = Math.Clamp(left, 6, Math.Max(6, Bounds.Width - width - 6));
+        top = Math.Clamp(top, 6, Math.Max(6, Bounds.Height - height - 6));
+        var labelRect = new Rect(left, top, width, height);
+        var leaderEnd = new Point(
+            labelRect.X > anchor.X ? labelRect.X : labelRect.Right,
+            labelRect.Y > anchor.Y ? labelRect.Y : labelRect.Bottom);
+        context.DrawLine(AnnotationLeaderPen, anchorPoint, leaderEnd);
+        context.DrawRectangle(
+            AnnotationLabelBackgroundBrush,
+            AnnotationBorderPen,
+            labelRect,
+            6,
+            6);
+        using (context.PushClip(
+            labelRect.Deflate(new Thickness(horizontalPadding - 1, verticalPadding - 1))))
+        {
+            context.DrawText(
+                displayText,
+                new Point(
+                    labelRect.X + horizontalPadding,
+                    labelRect.Y + verticalPadding));
+        }
+
+        DrawAnnotationMarker(context, anchor);
+    }
+
+    private static void DrawAnnotationMarker(
+        DrawingContext context,
+        CanvasPoint point)
+    {
+        var center = new Point(point.X, point.Y);
+        context.DrawEllipse(AnnotationBrush, null, center, 6, 6);
+        context.DrawEllipse(AnnotationInnerBrush, null, center, 2.4, 2.4);
+    }
+
+    private static string WrapAnnotationText(string text)
+    {
+        const int charactersPerLine = 28;
+        var lines = new List<string>();
+        foreach (var sourceLine in text.Split('\n'))
+        {
+            if (sourceLine.Length == 0)
+            {
+                lines.Add(string.Empty);
+                continue;
+            }
+
+            for (var index = 0; index < sourceLine.Length; index += charactersPerLine)
+            {
+                lines.Add(sourceLine.Substring(
+                    index,
+                    Math.Min(charactersPerLine, sourceLine.Length - index)));
+            }
+        }
+
+        return string.Join('\n', lines);
+    }
+
     private static PixelMeasurement CreateMeasurement(
         ImagePoint start,
         ImagePoint end,
@@ -960,7 +1155,10 @@ public sealed class ImageCanvas : Control
             ? PanningCursor
             : _isTemporaryPanEnabled
                 ? PanReadyCursor
-                : (_isMeasurementEnabled || _isEyedropperEnabled || _isMagnifierEnabled)
+                : (_isMeasurementEnabled
+                        || _isEyedropperEnabled
+                        || _isMagnifierEnabled
+                        || _isAnnotationEnabled)
                     && _bitmap is not null
                     ? MeasuringCursor
                     : Cursor.Default;
@@ -985,4 +1183,9 @@ public sealed class ImagePointerEventArgs(
 public sealed class ColorPickedEventArgs(PixelColor color) : EventArgs
 {
     public PixelColor Color { get; } = color;
+}
+
+public sealed class AnnotationRequestedEventArgs(ImagePoint anchor) : EventArgs
+{
+    public ImagePoint Anchor { get; } = anchor;
 }

@@ -1,0 +1,204 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PixelMate.TutorialWindow"
+        Title="PixelMate 操作指南"
+        Width="720"
+        Height="660"
+        MinWidth="620"
+        MinHeight="540"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        Background="#0B0B0D">
+    <Window.Resources>
+        <SolidColorBrush x:Key="DialogSurfaceBrush" Color="#1B1B1F" />
+        <SolidColorBrush x:Key="DialogBorderBrush" Color="#34343B" />
+        <SolidColorBrush x:Key="DialogTextBrush" Color="#F2F2F4" />
+        <SolidColorBrush x:Key="DialogMutedBrush" Color="#A6A6AC" />
+        <SolidColorBrush x:Key="DialogAccentBrush" Color="#0A84FF" />
+        <SolidColorBrush x:Key="AnnotationAccentBrush" Color="#63E6BE" />
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="TextBlock.guideTitle">
+            <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.guideBody">
+            <Setter Property="Foreground" Value="{StaticResource DialogMutedBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="19" />
+        </Style>
+        <Style Selector="Border.guideCard">
+            <Setter Property="Padding" Value="15,13" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Background" Value="{StaticResource DialogSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DialogBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Button.primary">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="18,4" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Background" Value="{StaticResource DialogAccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="26">
+        <StackPanel Grid.Row="0" Spacing="7">
+            <TextBlock Text="第一次使用 PixelMate"
+                       Foreground="{StaticResource DialogTextBrush}"
+                       FontSize="25"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="几分钟了解常用操作。这里只测量和检查图片，不会改写或上传源文件。"
+                       Foreground="{StaticResource DialogMutedBrush}"
+                       FontSize="12"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" Margin="0,22,0,18">
+            <StackPanel Spacing="10">
+                <Border Classes="guideCard">
+                    <Grid ColumnDefinitions="42,*">
+                        <Border Width="28"
+                                Height="28"
+                                CornerRadius="8"
+                                Background="#233D58"
+                                VerticalAlignment="Top">
+                            <TextBlock Text="1"
+                                       Foreground="#9DCEFF"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="打开图片" Classes="guideTitle" />
+                            <TextBlock Text="拖入图片，或按 ⌘O / Ctrl+O 选择本地文件。支持 PNG、JPG、BMP 和 WebP。"
+                                       Classes="guideBody" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Classes="guideCard">
+                    <Grid ColumnDefinitions="42,*">
+                        <Border Width="28"
+                                Height="28"
+                                CornerRadius="8"
+                                Background="#3A3022"
+                                VerticalAlignment="Top">
+                            <TextBlock Text="2"
+                                       Foreground="#FFD59A"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="测量像素距离" Classes="guideTitle" />
+                            <TextBlock Text="按 M 选择测量工具，左键拖动生成测量线。按住 Shift 锁定水平或垂直，⌘C / Ctrl+C 复制全部结果。"
+                                       Classes="guideBody" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Classes="guideCard">
+                    <Grid ColumnDefinitions="42,*">
+                        <Border Width="28"
+                                Height="28"
+                                CornerRadius="8"
+                                Background="#263C37"
+                                VerticalAlignment="Top">
+                            <TextBlock Text="3"
+                                       Foreground="{StaticResource AnnotationAccentBrush}"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="取色与放大镜" Classes="guideTitle" />
+                            <TextBlock Text="按 I 取色，移动鼠标读取像素，单击复制 HEX。按 Z 打开放大镜，使用 [ 和 ] 调整 8×、12×、16×。"
+                                       Classes="guideBody" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Classes="guideCard">
+                    <Grid ColumnDefinitions="42,*">
+                        <Border Width="28"
+                                Height="28"
+                                CornerRadius="8"
+                                Background="#173D34"
+                                VerticalAlignment="Top">
+                            <TextBlock Text="4"
+                                       Foreground="{StaticResource AnnotationAccentBrush}"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="添加文字批注" Classes="guideTitle" />
+                            <TextBlock Text="按 T 选择批注工具，点击图片任意位置输入文字。批注保留在原始图片坐标上，缩放或平移后仍会跟随图片。"
+                                       Classes="guideBody" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Classes="guideCard">
+                    <Grid ColumnDefinitions="42,*">
+                        <Border Width="28"
+                                Height="28"
+                                CornerRadius="8"
+                                Background="#263049"
+                                VerticalAlignment="Top">
+                            <TextBlock Text="5"
+                                       Foreground="#B8C8FF"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="缩放、平移与恢复" Classes="guideTitle" />
+                            <TextBlock Text="滚轮或 ⌘+/-（Ctrl+/-）缩放，中键拖动平移；按住空格可临时抓手拖动。⌘0 / Ctrl+0 适应窗口，⌘1 / Ctrl+1 恢复 100%。"
+                                       Classes="guideBody" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Classes="guideCard">
+                    <Grid ColumnDefinitions="42,*">
+                        <Border Width="28"
+                                Height="28"
+                                CornerRadius="8"
+                                Background="#353540"
+                                VerticalAlignment="Top">
+                            <TextBlock Text="6"
+                                       Foreground="#D4D4DB"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="随时回来查看" Classes="guideTitle" />
+                            <TextBlock Text="点击顶部的设置按钮，可以再次打开本指南、调整默认放大镜倍率，或查看关于信息。"
+                                       Classes="guideBody" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+            <TextBlock Text="按 Esc 也可以关闭本窗口"
+                       Foreground="#74747B"
+                       FontSize="11"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1"
+                    Classes="primary"
+                    Click="Close_Click"
+                    Content="开始使用" />
+        </Grid>
+    </Grid>
+</Window>

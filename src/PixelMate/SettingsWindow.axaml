@@ -1,0 +1,146 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PixelMate.SettingsWindow"
+        Title="PixelMate 设置"
+        Width="560"
+        Height="600"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#0B0B0D">
+    <Window.Resources>
+        <SolidColorBrush x:Key="DialogSurfaceBrush" Color="#1B1B1F" />
+        <SolidColorBrush x:Key="DialogBorderBrush" Color="#34343B" />
+        <SolidColorBrush x:Key="DialogTextBrush" Color="#F2F2F4" />
+        <SolidColorBrush x:Key="DialogMutedBrush" Color="#A6A6AC" />
+        <SolidColorBrush x:Key="DialogAccentBrush" Color="#0A84FF" />
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.sectionBody">
+            <Setter Property="Foreground" Value="{StaticResource DialogMutedBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="CheckBox, RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Border.settingsCard">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Background" Value="{StaticResource DialogSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DialogBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Button.secondary">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="13,3" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Background" Value="#2B2B2F" />
+            <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Button.primary">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="18,4" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Background" Value="{StaticResource DialogAccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <StackPanel Grid.Row="0" Spacing="5">
+            <TextBlock Text="设置"
+                       Foreground="{StaticResource DialogTextBrush}"
+                       FontSize="24"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="只保存少量本地偏好，不会上传任何内容。"
+                       Foreground="{StaticResource DialogMutedBrush}"
+                       FontSize="12" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" Margin="0,20,0,18">
+            <StackPanel Spacing="12">
+                <Border Classes="settingsCard">
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="3">
+                            <TextBlock Text="文件与启动" Classes="sectionTitle" />
+                            <TextBlock Text="控制打开图片时的默认行为和指南显示。" Classes="sectionBody" />
+                        </StackPanel>
+                        <CheckBox x:Name="RememberDirectoryCheckBox"
+                                  Content="记住上次打开图片的文件夹" />
+                        <CheckBox x:Name="ShowTutorialEveryLaunchCheckBox"
+                                  Content="每次启动都显示操作指南" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="settingsCard">
+                    <StackPanel Spacing="10">
+                        <StackPanel Spacing="3">
+                            <TextBlock Text="放大镜默认倍率" Classes="sectionTitle" />
+                            <TextBlock Text="启动后自动使用这个倍率，仍可在工具栏和用 [ ] 临时切换。"
+                                       Classes="sectionBody" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="18">
+                            <RadioButton x:Name="Magnifier8RadioButton"
+                                         GroupName="MagnifierScale"
+                                         Content="8×" />
+                            <RadioButton x:Name="Magnifier12RadioButton"
+                                         GroupName="MagnifierScale"
+                                         Content="12×" />
+                            <RadioButton x:Name="Magnifier16RadioButton"
+                                         GroupName="MagnifierScale"
+                                         Content="16×" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="settingsCard">
+                    <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
+                        <StackPanel Spacing="3">
+                            <TextBlock Text="帮助与信息" Classes="sectionTitle" />
+                            <TextBlock Text="重新查看操作步骤，或查看作者与联系方式。"
+                                       Classes="sectionBody" />
+                        </StackPanel>
+                        <Button x:Name="OpenTutorialButton"
+                                Grid.Column="1"
+                                Classes="secondary"
+                                Margin="12,0,8,0"
+                                Click="OpenTutorial_Click"
+                                Content="操作指南" />
+                        <Button x:Name="OpenAboutButton"
+                                Grid.Column="2"
+                                Classes="secondary"
+                                Click="OpenAbout_Click"
+                                Content="关于" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto">
+            <TextBlock x:Name="SettingsVersionTextBlock"
+                       Text="PixelMate 1.0.0"
+                       Foreground="#74747B"
+                       FontSize="11"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1"
+                    Classes="secondary"
+                    Margin="0,0,8,0"
+                    Click="Cancel_Click"
+                    Content="取消" />
+            <Button Grid.Column="2"
+                    Classes="primary"
+                    Click="Save_Click"
+                    Content="保存设置" />
+        </Grid>
+    </Grid>
+</Window>

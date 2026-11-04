@@ -4,6 +4,8 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using PixelMate.Annotations;
 using PixelMate.Colors;
 using PixelMate.Imaging;
 using PixelMate.Measurement;
@@ -19,7 +21,8 @@ public partial class MainWindow : Window
         None,
         Measure,
         Eyedropper,
-        Magnifier
+        Magnifier,
+        Annotation
     }
 
     private static readonly IReadOnlyList<FilePickerFileType> ImageFileTypes =
@@ -56,6 +59,7 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _imageOpenCancellation;
     private int _imageOpenVersion;
     private bool _isClosed;
+    private bool _hasShownStartupTutorial;
 
     public MainWindow()
     {
@@ -67,11 +71,19 @@ public partial class MainWindow : Window
         ImageCanvas.ViewChanged += ImageCanvas_ViewChanged;
         ImageCanvas.PointerImageChanged += ImageCanvas_PointerImageChanged;
         ImageCanvas.MeasurementsChanged += ImageCanvas_MeasurementsChanged;
+        ImageCanvas.AnnotationsChanged += ImageCanvas_AnnotationsChanged;
         ImageCanvas.ColorPicked += ImageCanvas_ColorPicked;
+        ImageCanvas.AnnotationRequested += ImageCanvas_AnnotationRequested;
+        AnnotationTextBox.AddHandler(
+            InputElement.KeyDownEvent,
+            AnnotationTextBox_KeyDown,
+            RoutingStrategies.Tunnel);
         KeyDown += MainWindow_KeyDown;
         KeyUp += MainWindow_KeyUp;
         Deactivated += MainWindow_Deactivated;
+        Opened += MainWindow_Opened;
         Closed += MainWindow_Closed;
+        ImageCanvas.SetMagnifierScale(_preferences.MagnifierScale);
         ConfigureShortcutHints();
         UpdateMagnifierScaleControls();
     }
@@ -88,7 +100,8 @@ public partial class MainWindow : Window
         try
         {
             suggestedStartLocation = null;
-            if (!string.IsNullOrWhiteSpace(_preferences.LastOpenDirectory)
+            if (_preferences.RememberLastDirectory
+                && !string.IsNullOrWhiteSpace(_preferences.LastOpenDirectory)
                 && Directory.Exists(_preferences.LastOpenDirectory))
             {
                 suggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(
@@ -242,6 +255,11 @@ public partial class MainWindow : Window
         SetActiveTool(ToolMode.Magnifier);
     }
 
+    private void AnnotationTool_Click(object? sender, RoutedEventArgs e)
+    {
+        SetActiveTool(ToolMode.Annotation);
+    }
+
     private void Magnifier8_Click(object? sender, RoutedEventArgs e)
     {
         SetMagnifierScale(8);
@@ -268,6 +286,17 @@ public partial class MainWindow : Window
         SetStatusMessage("已清除全部测量", false);
     }
 
+    private async void CopyAnnotations_Click(object? sender, RoutedEventArgs e)
+    {
+        await CopyAnnotationsAsync();
+    }
+
+    private void ClearAnnotations_Click(object? sender, RoutedEventArgs e)
+    {
+        ImageCanvas.ClearAnnotations();
+        SetStatusMessage("已清除全部批注", false);
+    }
+
     private async void CopySampledHex_Click(object? sender, RoutedEventArgs e)
     {
         if (_sampledColor is { } color)
@@ -284,8 +313,78 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ImageCanvas_AnnotationRequested(
+        object? sender,
+        Controls.AnnotationRequestedEventArgs e)
+    {
+        AnnotationCoordinateTextBlock.Text =
+            $"X {Math.Floor(e.Anchor.X)}  Y {Math.Floor(e.Anchor.Y)}";
+        AnnotationTextBox.Text = string.Empty;
+        AnnotationEditorBackdrop.IsVisible = true;
+        Dispatcher.UIThread.Post(() => AnnotationTextBox.Focus());
+    }
+
+    private void SaveAnnotation_Click(object? sender, RoutedEventArgs e)
+    {
+        SaveAnnotation();
+    }
+
+    private void CancelAnnotation_Click(object? sender, RoutedEventArgs e)
+    {
+        CloseAnnotationEditor(cancelDraft: true);
+    }
+
+    private void AnnotationTextBox_KeyDown(object? sender, KeyEventArgs e)
+    {
+        var hasPrimaryModifier = HasPrimaryModifier(e.KeyModifiers);
+        if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            CloseAnnotationEditor(cancelDraft: true);
+            return;
+        }
+
+        if ((e.Key == Key.Enter || e.Key == Key.Return) && hasPrimaryModifier)
+        {
+            e.Handled = true;
+            SaveAnnotation();
+        }
+    }
+
+    private void SaveAnnotation()
+    {
+        var text = PixelAnnotation.NormalizeText(AnnotationTextBox.Text);
+        if (text.Length == 0)
+        {
+            SetStatusMessage("请输入批注文字", true);
+            AnnotationTextBox.Focus();
+            return;
+        }
+
+        ImageCanvas.CommitAnnotation(text);
+        CloseAnnotationEditor(cancelDraft: false);
+        SetStatusMessage("已添加批注", false);
+        ImageCanvas.Focus();
+    }
+
+    private void CloseAnnotationEditor(bool cancelDraft)
+    {
+        AnnotationEditorBackdrop.IsVisible = false;
+        if (cancelDraft)
+        {
+            ImageCanvas.CancelAnnotationDraft();
+        }
+
+        ImageCanvas.Focus();
+    }
+
     private async void MainWindow_KeyDown(object? sender, KeyEventArgs e)
     {
+        if (AnnotationEditorBackdrop.IsVisible)
+        {
+            return;
+        }
+
         var hasPrimaryModifier = HasPrimaryModifier(e.KeyModifiers);
 
         if (e.Key == Key.Space
@@ -336,7 +435,12 @@ public partial class MainWindow : Window
 
         if (hasPrimaryModifier && e.Key == Key.C)
         {
-            if (_sampledColor is { } color
+            if (_activeTool == ToolMode.Annotation && ImageCanvas.HasAnnotations)
+            {
+                e.Handled = true;
+                await CopyAnnotationsAsync();
+            }
+            else if (_sampledColor is { } color
                 && (_activeTool == ToolMode.Eyedropper
                     || _activeTool == ToolMode.Magnifier))
             {
@@ -376,6 +480,10 @@ public partial class MainWindow : Window
                     e.Handled = true;
                     SetActiveTool(ToolMode.Magnifier);
                     return;
+                case Key.T:
+                    e.Handled = true;
+                    SetActiveTool(ToolMode.Annotation);
+                    return;
                 case Key.OemOpenBrackets:
                     e.Handled = true;
                     ChangeMagnifierScale(-1);
@@ -387,12 +495,23 @@ public partial class MainWindow : Window
             }
         }
 
-        if ((e.Key == Key.Back || e.Key == Key.Delete)
-            && ImageCanvas.HasMeasurements)
+        if (e.Key == Key.Back || e.Key == Key.Delete)
         {
-            e.Handled = true;
-            ImageCanvas.ClearMeasurements();
-            SetStatusMessage("已清除全部测量", false);
+            if (_activeTool == ToolMode.Annotation)
+            {
+                if (ImageCanvas.HasAnnotations)
+                {
+                    e.Handled = true;
+                    ImageCanvas.ClearAnnotations();
+                    SetStatusMessage("已清除全部批注", false);
+                }
+            }
+            else if (ImageCanvas.HasMeasurements)
+            {
+                e.Handled = true;
+                ImageCanvas.ClearMeasurements();
+                SetStatusMessage("已清除全部测量", false);
+            }
         }
     }
 
@@ -465,6 +584,39 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private async void MainWindow_Opened(object? sender, EventArgs e)
+    {
+        if (_hasShownStartupTutorial || !_preferences.ShouldShowTutorial)
+        {
+            return;
+        }
+
+        _hasShownStartupTutorial = true;
+        await ShowTutorialAsync();
+    }
+
+    private async Task ShowTutorialAsync()
+    {
+        await new TutorialWindow().ShowDialog(this);
+        _preferences.MarkTutorialSeen();
+    }
+
+    private async void Settings_Click(object? sender, RoutedEventArgs e)
+    {
+        var dialog = new SettingsWindow(_preferences.CreateSettingsSnapshot());
+        var result = await dialog.ShowDialog<AppSettingsSnapshot?>(this);
+        if (result is not { } settings)
+        {
+            return;
+        }
+
+        _preferences.ApplySettings(settings);
+        ImageCanvas.SetMagnifierScale(settings.MagnifierScale);
+        UpdateMagnifierScaleControls();
+        SetStatusMessage("设置已保存", false);
+        ImageCanvas.Focus();
+    }
+
     private void UpdateViewStatus()
     {
         if (!ImageCanvas.Transform.HasImage)
@@ -484,7 +636,7 @@ public partial class MainWindow : Window
 
     private void ImageCanvas_MeasurementsChanged(object? sender, EventArgs e)
     {
-        UpdateMeasurementActions();
+        UpdateOverlayActions();
 
         if (ImageCanvas.HasMeasurements)
         {
@@ -496,8 +648,28 @@ public partial class MainWindow : Window
     private void UpdateMeasurementActions()
     {
         var count = ImageCanvas.Measurements.Count;
-        MeasurementActionsPanel.IsVisible = count > 0;
         MeasurementCountTextBlock.Text = $"{count} 条";
+    }
+
+    private void ImageCanvas_AnnotationsChanged(object? sender, EventArgs e)
+    {
+        UpdateOverlayActions();
+
+        if (ImageCanvas.HasAnnotations)
+        {
+            var count = ImageCanvas.Annotations.Count;
+            SetStatusMessage($"已记录 {count} 条批注", false);
+        }
+    }
+
+    private void UpdateOverlayActions()
+    {
+        UpdateMeasurementActions();
+        AnnotationCountTextBlock.Text = $"{ImageCanvas.Annotations.Count} 条";
+        MeasurementActionsPanel.IsVisible =
+            _activeTool == ToolMode.Measure && ImageCanvas.HasMeasurements;
+        AnnotationActionsPanel.IsVisible =
+            _activeTool == ToolMode.Annotation && ImageCanvas.HasAnnotations;
     }
 
     private async Task CopyMeasurementsAsync()
@@ -527,6 +699,33 @@ public partial class MainWindow : Window
         }
     }
 
+    private async Task CopyAnnotationsAsync()
+    {
+        if (!ImageCanvas.HasAnnotations)
+        {
+            SetStatusMessage("还没有可复制的批注", true);
+            return;
+        }
+
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is null)
+        {
+            SetStatusMessage("当前系统剪贴板不可用", true);
+            return;
+        }
+
+        try
+        {
+            await clipboard.SetTextAsync(
+                AnnotationFormatting.FormatClipboard(ImageCanvas.Annotations));
+            SetStatusMessage($"已复制 {ImageCanvas.Annotations.Count} 条批注", false);
+        }
+        catch (Exception)
+        {
+            SetStatusMessage("复制批注失败", true);
+        }
+    }
+
     private void SetImageControlsEnabled(bool isEnabled)
     {
         FitButton.IsEnabled = isEnabled;
@@ -536,9 +735,11 @@ public partial class MainWindow : Window
         MeasureToolButton.IsEnabled = isEnabled;
         EyedropperToolButton.IsEnabled = isEnabled;
         MagnifierToolButton.IsEnabled = isEnabled;
+        AnnotationToolButton.IsEnabled = isEnabled;
         if (!isEnabled)
         {
             ImageCanvas.SetTemporaryPanEnabled(false);
+            CloseAnnotationEditor(cancelDraft: true);
             SetActiveTool(ToolMode.None);
         }
     }
@@ -557,22 +758,31 @@ public partial class MainWindow : Window
         MeasureToolButton.IsChecked = tool == ToolMode.Measure;
         EyedropperToolButton.IsChecked = tool == ToolMode.Eyedropper;
         MagnifierToolButton.IsChecked = tool == ToolMode.Magnifier;
+        AnnotationToolButton.IsChecked = tool == ToolMode.Annotation;
         ImageCanvas.SetMeasurementEnabled(tool == ToolMode.Measure);
         ImageCanvas.SetEyedropperEnabled(tool == ToolMode.Eyedropper);
         ImageCanvas.SetMagnifierEnabled(tool == ToolMode.Magnifier);
+        ImageCanvas.SetAnnotationEnabled(tool == ToolMode.Annotation);
         MagnifierScalePanel.IsVisible = tool == ToolMode.Magnifier;
         UpdateMagnifierScaleControls();
+        if (tool != ToolMode.Annotation)
+        {
+            CloseAnnotationEditor(cancelDraft: true);
+        }
+
         if (tool != ToolMode.Eyedropper && tool != ToolMode.Magnifier)
         {
             UpdateSampledColor(null);
         }
 
+        UpdateOverlayActions();
         SetStatusMessage(
             tool switch
             {
                 ToolMode.Measure => "测量：左键拖动；Shift 锁定方向；空格拖动平移",
                 ToolMode.Eyedropper => "取色：移动读取颜色；左键复制 HEX；空格拖动平移",
                 ToolMode.Magnifier => "放大镜：移动检查像素；[ ] 调整倍率；空格拖动平移",
+                ToolMode.Annotation => "批注：点击图片输入文字；Delete 清除全部批注",
                 _ => string.Empty
             },
             false);
@@ -665,6 +875,9 @@ public partial class MainWindow : Window
             MagnifierToolButton,
             "放大并检查单个像素 (Z)；[ ] 调整倍率");
         ToolTip.SetTip(
+            AnnotationToolButton,
+            "在图片上添加文字批注 (T)");
+        ToolTip.SetTip(
             FitButton,
             $"图片适应窗口 ({primary}0)");
         ToolTip.SetTip(
@@ -697,8 +910,19 @@ public partial class MainWindow : Window
         ToolTip.SetTip(
             CopySampledRgbButton,
             "复制当前 RGB 颜色");
+        ToolTip.SetTip(
+            CopyAnnotationsButton,
+            $"复制全部批注 ({primary}C)");
+        ToolTip.SetTip(
+            ClearAnnotationsButton,
+            $"清除全部批注 ({clearShortcut})");
+        ToolTip.SetTip(
+            SettingsButton,
+            "设置");
 
         EmptyStateShortcutTextBlock.Text =
             $"PNG · JPG · BMP · WebP     {primary}O";
+        AnnotationEditorShortcutTextBlock.Text =
+            $"{(OperatingSystem.IsMacOS() ? "⌘" : "Ctrl+")}↩ 保存   Esc 取消";
     }
 }

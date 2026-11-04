@@ -4,6 +4,7 @@ namespace PixelMate.Preferences;
 
 public sealed class AppPreferences
 {
+    private static readonly int[] SupportedMagnifierScales = [8, 12, 16];
     private readonly string _settingsPath;
     private PreferencesData _data;
 
@@ -11,10 +12,19 @@ public sealed class AppPreferences
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(settingsPath);
         _settingsPath = settingsPath;
-        _data = Read(settingsPath);
+        _data = Normalize(Read(settingsPath));
     }
 
     public string? LastOpenDirectory => _data.LastOpenDirectory;
+
+    public bool RememberLastDirectory => _data.RememberLastDirectory;
+
+    public bool ShowTutorialEveryLaunch => _data.ShowTutorialEveryLaunch;
+
+    public int MagnifierScale => _data.MagnifierScale;
+
+    public bool ShouldShowTutorial =>
+        !_data.HasSeenTutorial || _data.ShowTutorialEveryLaunch;
 
     public static AppPreferences CreateDefault()
     {
@@ -24,6 +34,11 @@ public sealed class AppPreferences
 
     public void RememberDirectory(string filePath)
     {
+        if (!RememberLastDirectory)
+        {
+            return;
+        }
+
         var directory = Path.GetDirectoryName(filePath);
         if (string.IsNullOrWhiteSpace(directory))
         {
@@ -31,7 +46,41 @@ public sealed class AppPreferences
         }
 
         _data = _data with { LastOpenDirectory = directory };
+        Save();
+    }
 
+    public AppSettingsSnapshot CreateSettingsSnapshot()
+    {
+        return new AppSettingsSnapshot(
+            RememberLastDirectory,
+            ShowTutorialEveryLaunch,
+            MagnifierScale);
+    }
+
+    public void ApplySettings(AppSettingsSnapshot settings)
+    {
+        _data = Normalize(_data with
+        {
+            RememberLastDirectory = settings.RememberLastDirectory,
+            ShowTutorialEveryLaunch = settings.ShowTutorialEveryLaunch,
+            MagnifierScale = settings.MagnifierScale
+        });
+        Save();
+    }
+
+    public void MarkTutorialSeen()
+    {
+        if (_data.HasSeenTutorial)
+        {
+            return;
+        }
+
+        _data = _data with { HasSeenTutorial = true };
+        Save();
+    }
+
+    private void Save()
+    {
         string? temporaryPath = null;
         try
         {
@@ -72,6 +121,13 @@ public sealed class AppPreferences
         }
     }
 
+    private static PreferencesData Normalize(PreferencesData data)
+    {
+        return SupportedMagnifierScales.Contains(data.MagnifierScale)
+            ? data
+            : data with { MagnifierScale = 12 };
+    }
+
     private static PreferencesData Read(string settingsPath)
     {
         try
@@ -102,5 +158,18 @@ public sealed class AppPreferences
     internal sealed record PreferencesData
     {
         public string? LastOpenDirectory { get; init; }
+
+        public bool RememberLastDirectory { get; init; } = true;
+
+        public bool HasSeenTutorial { get; init; }
+
+        public bool ShowTutorialEveryLaunch { get; init; }
+
+        public int MagnifierScale { get; init; } = 12;
     }
 }
+
+public readonly record struct AppSettingsSnapshot(
+    bool RememberLastDirectory,
+    bool ShowTutorialEveryLaunch,
+    int MagnifierScale);

@@ -10,7 +10,7 @@
         Title="PixelMate"
         Width="1040"
         Height="700"
-        MinWidth="760"
+        MinWidth="920"
         MinHeight="500"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/PixelMate.png"
@@ -295,6 +295,29 @@
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </ToggleButton>
+
+                        <ToggleButton x:Name="AnnotationToolButton"
+                                      Classes="toolChoice"
+                                      Click="AnnotationTool_Click"
+                                      IsEnabled="False"
+                                      ToolTip.Tip="在图片上添加文字批注 (T)">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Canvas Width="17" Height="17">
+                                    <Path Data="M3,3.5 L14,3.5 M8.5,3.5 L8.5,13.5 M5.8,13.5 L11.2,13.5"
+                                          Stroke="#D8D8DD"
+                                          StrokeThickness="1.45"
+                                          StrokeLineCap="Round" />
+                                    <Ellipse Canvas.Left="13"
+                                             Canvas.Top="9"
+                                             Width="3.2"
+                                             Height="3.2"
+                                             Fill="#63E6BE" />
+                                </Canvas>
+                                <TextBlock Text="批注"
+                                           FontSize="12"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </ToggleButton>
                     </StackPanel>
                 </Border>
 
@@ -378,6 +401,41 @@
                                       Content="16×"
                                       ToolTip.Tip="每像素放大 16 倍" />
                     </StackPanel>
+                    <Border Classes="statusSeparator" />
+                    <Button x:Name="SettingsButton"
+                            Classes="barAction"
+                            Width="30"
+                            Padding="0"
+                            Click="Settings_Click"
+                            ToolTip.Tip="设置">
+                        <Canvas Width="17" Height="17">
+                            <Path Data="M2.5,4.5 L14.5,4.5 M2.5,8.5 L14.5,8.5 M2.5,12.5 L14.5,12.5"
+                                  Stroke="#D8D8DD"
+                                  StrokeThickness="1.2"
+                                  StrokeLineCap="Round" />
+                            <Ellipse Canvas.Left="5"
+                                     Canvas.Top="2.5"
+                                     Width="4"
+                                     Height="4"
+                                     Fill="#17171A"
+                                     Stroke="#D8D8DD"
+                                     StrokeThickness="1.2" />
+                            <Ellipse Canvas.Left="10"
+                                     Canvas.Top="6.5"
+                                     Width="4"
+                                     Height="4"
+                                     Fill="#17171A"
+                                     Stroke="#D8D8DD"
+                                     StrokeThickness="1.2" />
+                            <Ellipse Canvas.Left="4"
+                                     Canvas.Top="10.5"
+                                     Width="4"
+                                     Height="4"
+                                     Fill="#17171A"
+                                     Stroke="#D8D8DD"
+                                     StrokeThickness="1.2" />
+                        </Canvas>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -446,6 +504,68 @@
                                TextAlignment="Center"
                                HorizontalAlignment="Center" />
                 </StackPanel>
+
+                <Border x:Name="AnnotationEditorBackdrop"
+                        Background="#73000000"
+                        IsVisible="False">
+                    <Border Width="430"
+                            Padding="18"
+                            CornerRadius="12"
+                            Background="#F01D1D21"
+                            BorderBrush="#4A4A52"
+                            BorderThickness="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                        <Grid RowDefinitions="Auto,Auto,Auto">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="3">
+                                    <TextBlock Text="添加批注"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontSize="16"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="批注只显示在当前会话中，不会修改源图片。"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               FontSize="11" />
+                                </StackPanel>
+                                <TextBlock x:Name="AnnotationCoordinateTextBlock"
+                                           Grid.Column="1"
+                                           Foreground="#63E6BE"
+                                           FontFamily="SF Mono, Menlo, Consolas, monospace"
+                                           FontSize="10"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                            <TextBox x:Name="AnnotationTextBox"
+                                     Grid.Row="1"
+                                     Height="112"
+                                     Margin="0,15,0,13"
+                                     Padding="10"
+                                     AcceptsReturn="True"
+                                     MaxLength="500"
+                                     TextWrapping="Wrap"
+                                     PlaceholderText="输入批注内容…"
+                                     VerticalContentAlignment="Top" />
+                            <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto">
+                                <TextBlock x:Name="AnnotationEditorShortcutTextBlock"
+                                           Text="⌘↩ 保存   Esc 取消"
+                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           FontSize="10"
+                                           VerticalAlignment="Center" />
+                                <Button x:Name="CancelAnnotationButton"
+                                        Grid.Column="1"
+                                        Classes="barAction"
+                                        Margin="0,0,7,0"
+                                        Click="CancelAnnotation_Click"
+                                        Content="取消" />
+                                <Button x:Name="SaveAnnotationButton"
+                                        Grid.Column="2"
+                                        Classes="primary"
+                                        Height="30"
+                                        Click="SaveAnnotation_Click"
+                                        Content="保存批注" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Border>
             </Grid>
         </Border>
 
@@ -499,6 +619,29 @@
                             Click="ClearMeasurements_Click"
                             Content="清除"
                             ToolTip.Tip="清除全部测量 (⌫)" />
+                </StackPanel>
+
+                <StackPanel x:Name="AnnotationActionsPanel"
+                            Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            IsVisible="False">
+                    <TextBlock x:Name="AnnotationCountTextBlock"
+                               Classes="statusMono"
+                               Margin="0,0,5,0"
+                               Text="0 条" />
+                    <Button x:Name="CopyAnnotationsButton"
+                            Classes="statusAction"
+                            Click="CopyAnnotations_Click"
+                            Content="复制"
+                            ToolTip.Tip="复制全部批注 (⌘C)" />
+                    <Button x:Name="ClearAnnotationsButton"
+                            Classes="statusAction"
+                            Click="ClearAnnotations_Click"
+                            Content="清除"
+                            ToolTip.Tip="清除全部批注 (⌫)" />
                 </StackPanel>
 
                 <TextBlock x:Name="PointerTextBlock"
