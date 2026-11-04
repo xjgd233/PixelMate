@@ -17,6 +17,8 @@
 - 半透明或全透明颜色使用 `#RRGGBBAA` 与 `rgba(r, g, b, a)`，保留原始 RGB 与 Alpha。
 - 图片通过 Skia 解码为未预乘 BGRA，显示与取色共用同一批原始像素，避免 Alpha 预乘造成通道误差。
 - 鼠标离开画布后保留最近一次取色结果，便于继续点击状态栏复制按钮。
+- 测量浮层简化为直接的 `130.79px` 长度文本，同时减细线段、端点、阴影和标签间距。
+- 测量复制文本继续保留 ΔX、ΔY 与起止坐标，不因浮层简化丢失数据。
 - 切换到其他工具、打开新图片或关闭窗口时清理取色状态和像素缓冲。
 - 保留阶段 0—3 的图片打开、缩放、平移、测量和异常文件容错。
 
@@ -27,10 +29,12 @@
 - `src/PixelMate/Controls/ImageCanvas.cs`
 - `src/PixelMate/Imaging/ImagePixelBuffer.cs`
 - `src/PixelMate/Imaging/OriginalImageDecoder.cs`
+- `src/PixelMate/Measurement/PixelMeasurement.cs`
 - `src/PixelMate/MainWindow.axaml`
 - `src/PixelMate/MainWindow.axaml.cs`
 - `tests/PixelMate.Tests/ImagePixelBufferTests.cs`
 - `tests/PixelMate.Tests/PixelColorTests.cs`
+- `tests/PixelMate.Tests/PixelMeasurementTests.cs`
 - `docs/phase-status.md`
 - `docs/reports/phase-4-report.md`
 
@@ -89,6 +93,7 @@
 - 回归打开 JPG 与 BMP，图片尺寸、缩放和取色正常。
 - WebP 回归读取半透明绿色仍为 `#00FF0080`。
 - 打开损坏 PNG 时保留当前有效图片，并显示友好的打开失败提示。
+- 实际绘制斜向测量线后，画布只显示 `130.79px`；线条与端点比阶段 3 更细，视觉层级更轻。
 
 ## 五、Computer Use 测试结果
 
@@ -110,6 +115,10 @@
 阶段实现提交：`6c78323`
 
 提交信息：`feat: implement phase 4 color picker`
+
+验收反馈提交：`97afea9`
+
+提交信息：`style: simplify measurement overlay`
 
 ## 八、等待用户验收
 
