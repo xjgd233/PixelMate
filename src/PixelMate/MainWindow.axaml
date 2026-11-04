@@ -234,6 +234,37 @@
                                        VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+                    <Border Classes="statusSeparator" />
+                    <Button x:Name="UndoButton"
+                            Classes="barAction"
+                            Width="30"
+                            Padding="0"
+                            Click="Undo_Click"
+                            IsEnabled="False"
+                            ToolTip.Tip="撤销上一次编辑 (⌘Z)">
+                        <Canvas Width="17" Height="17">
+                            <Path Data="M6.2,5.5 L2.9,8.8 L6.2,12.1 M3.4,8.8 L10.2,8.8 C12.7,8.8 14.2,10.3 14.2,12.2 C14.2,13.9 13,14.7 11.3,14.7"
+                                  Stroke="#D8D8DD"
+                                  StrokeThickness="1.4"
+                                  StrokeJoin="Round"
+                                  StrokeLineCap="Round" />
+                        </Canvas>
+                    </Button>
+                    <Button x:Name="RedoButton"
+                            Classes="barAction"
+                            Width="30"
+                            Padding="0"
+                            Click="Redo_Click"
+                            IsEnabled="False"
+                            ToolTip.Tip="重做/前进 (⌘⇧Z)">
+                        <Canvas Width="17" Height="17">
+                            <Path Data="M10.8,5.5 L14.1,8.8 L10.8,12.1 M13.6,8.8 L6.8,8.8 C4.3,8.8 2.8,10.3 2.8,12.2 C2.8,13.9 4,14.7 5.7,14.7"
+                                  Stroke="#D8D8DD"
+                                  StrokeThickness="1.4"
+                                  StrokeJoin="Round"
+                                  StrokeLineCap="Round" />
+                        </Canvas>
+                    </Button>
                 </StackPanel>
 
                 <Border Grid.Column="1"

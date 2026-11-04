@@ -81,6 +81,7 @@ public partial class MainWindow : Window
         ImageCanvas.PointerImageChanged += ImageCanvas_PointerImageChanged;
         ImageCanvas.MeasurementsChanged += ImageCanvas_MeasurementsChanged;
         ImageCanvas.AnnotationsChanged += ImageCanvas_AnnotationsChanged;
+        ImageCanvas.EditHistoryChanged += ImageCanvas_EditHistoryChanged;
         ImageCanvas.ColorPicked += ImageCanvas_ColorPicked;
         ImageCanvas.AnnotationRequested += ImageCanvas_AnnotationRequested;
         AnnotationTextBox.AddHandler(
@@ -95,6 +96,7 @@ public partial class MainWindow : Window
         ImageCanvas.SetMagnifierScale(_preferences.MagnifierScale);
         ConfigureShortcutHints();
         UpdateMagnifierScaleControls();
+        UpdateUndoRedoControls();
     }
 
     private async void OpenImage_Click(object? sender, RoutedEventArgs e)
@@ -234,6 +236,16 @@ public partial class MainWindow : Window
     private async void SaveEditedImage_Click(object? sender, RoutedEventArgs e)
     {
         await SaveEditedImageAsync();
+    }
+
+    private void Undo_Click(object? sender, RoutedEventArgs e)
+    {
+        UndoEdit();
+    }
+
+    private void Redo_Click(object? sender, RoutedEventArgs e)
+    {
+        RedoEdit();
     }
 
     private async Task SaveEditedImageAsync()
@@ -507,6 +519,28 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (hasPrimaryModifier && e.Key == Key.Z)
+        {
+            e.Handled = true;
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            {
+                RedoEdit();
+            }
+            else
+            {
+                UndoEdit();
+            }
+
+            return;
+        }
+
+        if (hasPrimaryModifier && e.Key == Key.Y)
+        {
+            e.Handled = true;
+            RedoEdit();
+            return;
+        }
+
         if (hasPrimaryModifier && e.Key == Key.S)
         {
             e.Handled = true;
@@ -773,6 +807,39 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ImageCanvas_EditHistoryChanged(object? sender, EventArgs e)
+    {
+        UpdateUndoRedoControls();
+    }
+
+    private void UndoEdit()
+    {
+        if (ImageCanvas.Undo() is not { } description)
+        {
+            return;
+        }
+
+        SetStatusMessage($"已撤销：{description}", false);
+        UpdateUndoRedoControls();
+    }
+
+    private void RedoEdit()
+    {
+        if (ImageCanvas.Redo() is not { } description)
+        {
+            return;
+        }
+
+        SetStatusMessage($"已重做：{description}", false);
+        UpdateUndoRedoControls();
+    }
+
+    private void UpdateUndoRedoControls()
+    {
+        UndoButton.IsEnabled = ImageCanvas.CanUndo;
+        RedoButton.IsEnabled = ImageCanvas.CanRedo;
+    }
+
     private void UpdateOverlayActions()
     {
         UpdateMeasurementActions();
@@ -844,6 +911,7 @@ public partial class MainWindow : Window
         ZoomOutButton.IsEnabled = isEnabled;
         ZoomInButton.IsEnabled = isEnabled;
         SaveEditedImageButton.IsEnabled = isEnabled;
+        UpdateUndoRedoControls();
         MeasureToolButton.IsEnabled = isEnabled;
         EyedropperToolButton.IsEnabled = isEnabled;
         MagnifierToolButton.IsEnabled = isEnabled;
@@ -980,6 +1048,14 @@ public partial class MainWindow : Window
         ToolTip.SetTip(
             SaveEditedImageButton,
             $"保存带测量和批注的图片 ({primary}S)");
+        ToolTip.SetTip(
+            UndoButton,
+            $"撤销上一次编辑 ({primary}Z)");
+        ToolTip.SetTip(
+            RedoButton,
+            OperatingSystem.IsMacOS()
+                ? "重做/前进 (⌘⇧Z)"
+                : "重做/前进 (Ctrl+Y 或 Ctrl+Shift+Z)");
         ToolTip.SetTip(
             MeasureToolButton,
             "测量像素距离 (M)；按住 Shift 锁定水平或垂直");

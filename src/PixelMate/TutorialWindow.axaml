@@ -180,8 +180,8 @@
                                        VerticalAlignment="Center" />
                         </Border>
                         <StackPanel Grid.Column="1" Spacing="4">
-                            <TextBlock Text="保存与随时查看" Classes="guideTitle" />
-                            <TextBlock Text="完成测量或批注后，按 ⌘S / Ctrl+S 选择位置并保存原分辨率 PNG。点击设置按钮可再次打开本指南、调整默认倍率或查看关于信息。"
+                            <TextBlock Text="撤销、保存与随时查看" Classes="guideTitle" />
+                            <TextBlock Text="误操作可用 ⌘Z / Ctrl+Z 撤销，⌘⇧Z / Ctrl+Y 前进；也可使用顶部箭头按钮。完成测量或批注后，按 ⌘S / Ctrl+S 保存原分辨率 PNG。"
                                        Classes="guideBody" />
                         </StackPanel>
                     </Grid>

@@ -15,6 +15,11 @@
 - 支持多条批注、`⌘/Ctrl+C` 复制全部批注，以及 `Delete/Backspace` 清除全部批注。
 - 新增“保存图片”按钮及 `⌘/Ctrl+S`，使用系统保存位置选择器输出 PNG。
 - 导出的 PNG 保持原图分辨率，并将当前全部测量线、长度标签和批注合成到输出图片。
+- 新增 Office 风格撤销/前进按钮及工具提示。
+- 撤销历史覆盖添加测量、清空测量、添加批注和清空批注；撤销后再次编辑会丢弃
+  已失效的前进分支。缩放、平移和工具切换不进入编辑历史。
+- 支持 `⌘Z` / `Ctrl+Z` 撤销，`⌘⇧Z` / `Ctrl+Y` / `Ctrl+Shift+Z` 前进，并根据历史
+  状态自动启用或禁用按钮。
 - 主窗口自绘标题栏支持拖动移动，双击可在最大化和还原之间切换。
 - 移除 Inter 字体依赖；Windows 优先使用 Segoe UI / 微软雅黑，macOS 使用
   SF Pro / 苹方，避免跨平台字体度量混用。
@@ -52,6 +57,7 @@
 - `src/PixelMate/AppTypography.cs`
 - `src/PixelMate/AppIdentity.cs`
 - `src/PixelMate/Controls/ImageCanvas.cs`
+- `src/PixelMate/Editing/UndoRedoHistory.cs`
 - `src/PixelMate/Imaging/EditedImageExport.cs`
 - `src/PixelMate/MainWindow.axaml`
 - `src/PixelMate/MainWindow.axaml.cs`
@@ -65,6 +71,7 @@
 - `tests/PixelMate.Tests/AboutImageLocatorTests.cs`
 - `tests/PixelMate.Tests/AppPreferencesTests.cs`
 - `tests/PixelMate.Tests/EditedImageExportTests.cs`
+- `tests/PixelMate.Tests/UndoRedoHistoryTests.cs`
 - `tests/PixelMate.Tests/PixelAnnotationTests.cs`
 
 ## 三、编译结果
@@ -84,7 +91,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
   -v:minimal
 ```
 
-结果：91 个测试通过，0 个失败，0 个跳过。
+结果：94 个测试通过，0 个失败，0 个跳过。
 
 新增回归覆盖：
 
@@ -95,6 +102,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 图片文件夹关键词匹配、扩展名过滤和缺图回退。
 - 导出图片的默认文件名和测量/批注叠加比例。
 - 平台原生字体优先级，避免 Windows 误用 Apple 字体度量。
+- 撤销/前进状态恢复、分支截断和历史容量限制。
 
 ## 四、实际运行测试
 
@@ -121,6 +129,11 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 设置页、状态栏和数字文本的基线及行高正常。
 - 启动采用 `PingFang SC` 的新版后，设置页和关于页的文字、数字与按钮内容
   均由同一字体族排版。
+- 在 `400 × 300` 测试 WebP 上添加测量后，“撤销”按钮自动启用；点击后测量消失且
+  “前进”按钮启用，再点击后测量恢复。
+- 使用 `⌘Z` / `⌘⇧Z` 重复验证撤销和前进快捷键。
+- 清空测量后执行撤销，原测量恢复；前进后再次清空。
+- 添加两行批注后使用 `⌘Z` 撤销，批注从画布和计数中移除。
 - 关于页显示修正后的 GitHub 账号 `xjgd233`。
 
 ## 五、Computer Use 测试结果
@@ -128,6 +141,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - Computer Use 可识别首次指南、主窗口批注工具、批注输入层、设置窗口和关于窗口。
 - 通过真实键盘输入、`⌘+Return` 保存、`⌘C` 复制、设置切换与重启验证完成交互。
 - 通过真实标题栏双击、`⌘S`、系统保存对话框和导出结果截图验证本轮新增交互。
+- 通过真实按钮点击和 `⌘Z` / `⌘⇧Z` 验证测量、清空与批注的撤销/前进流程。
 - 通过截图确认批注浮层、工具栏布局、设置层级和关于页排版正常。
 - 文件选择器与原有测量、取色、放大镜、缩放和平移未发现回归。
 
@@ -136,9 +150,9 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,267,594` 字节
+- 压缩包大小：`47,271,670` 字节
 - ZIP SHA-256：
-  `186d1e2da25efa970c5e6879338382c1e7655e75004c591498fea5ed73a58083`
+  `dd1c0c4b85ce662c1a09766322af222b2419ee12be2c6e35da3865177f28bdee`
 - Windows 主程序、Skia、HarfBuzz 和 OpenGL 原生库仍为 x86-64 PE。
 - 阶段 7 验收修正后已重新发布，发布包增加 Per-Monitor V2 高 DPI 清单和
   `WINDOWS-ACCEPTANCE.md` 实机验收清单。

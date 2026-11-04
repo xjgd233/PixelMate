@@ -6,6 +6,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using PixelMate.Annotations;
 using PixelMate.Colors;
+using PixelMate.Editing;
 using PixelMate.Imaging;
 using PixelMate.Magnifier;
 using PixelMate.Measurement;
@@ -16,6 +17,10 @@ namespace PixelMate.Controls;
 
 public sealed class ImageCanvas : Control
 {
+    private readonly record struct EditorSnapshot(
+        PixelMeasurement[] Measurements,
+        PixelAnnotation[] Annotations);
+
     private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#0B0B0D"));
     private static readonly IBrush CheckerLightBrush = new SolidColorBrush(Color.Parse("#202024"));
     private static readonly IBrush CheckerDarkBrush = new SolidColorBrush(Color.Parse("#18181B"));
@@ -77,6 +82,7 @@ public sealed class ImageCanvas : Control
 
     private readonly SolidColorBrush _eyedropperSwatchBrush =
         new(Avalonia.Media.Colors.Transparent);
+    private readonly UndoRedoHistory<EditorSnapshot> _editHistory = new();
     private Bitmap? _bitmap;
     private ImagePixelBuffer? _pixels;
     private bool _isPanning;
@@ -105,6 +111,8 @@ public sealed class ImageCanvas : Control
         Focusable = true;
         ClipToBounds = true;
         RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.None);
+        _editHistory.Changed += (_, _) =>
+            EditHistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public event EventHandler? ViewChanged;
@@ -119,6 +127,8 @@ public sealed class ImageCanvas : Control
 
     public event EventHandler? AnnotationsChanged;
 
+    public event EventHandler? EditHistoryChanged;
+
     public ImageCanvasTransform Transform { get; } = new();
 
     public IReadOnlyList<PixelMeasurement> Measurements => _measurements;
@@ -128,6 +138,10 @@ public sealed class ImageCanvas : Control
     public IReadOnlyList<PixelAnnotation> Annotations => _annotations;
 
     public bool HasAnnotations => _annotations.Count > 0;
+
+    public bool CanUndo => _bitmap is not null && _editHistory.CanUndo;
+
+    public bool CanRedo => _bitmap is not null && _editHistory.CanRedo;
 
     public int MagnifierScale => _magnifierScale;
 
@@ -195,6 +209,7 @@ public sealed class ImageCanvas : Control
 
         ClearMeasurements();
         ClearAnnotations();
+        ResetEditHistory();
         previous?.Dispose();
         InvalidateVisual();
         ViewChanged?.Invoke(this, EventArgs.Empty);
@@ -340,6 +355,7 @@ public sealed class ImageCanvas : Control
 
         if (hadMeasurements)
         {
+            RecordEdit("清空测量");
             InvalidateVisual();
             MeasurementsChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -370,6 +386,7 @@ public sealed class ImageCanvas : Control
         var annotation = PixelAnnotation.Create(anchor, text);
         _annotations.Add(annotation);
         _annotationDraftAnchor = null;
+        RecordEdit("添加批注");
         InvalidateVisual();
         AnnotationsChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -392,9 +409,32 @@ public sealed class ImageCanvas : Control
         _annotationDraftAnchor = null;
         if (hadAnnotations)
         {
+            RecordEdit("清空批注");
             InvalidateVisual();
             AnnotationsChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    public string? Undo()
+    {
+        if (_editHistory.Undo(out var snapshot) is not { } description)
+        {
+            return null;
+        }
+
+        RestoreEditSnapshot(snapshot);
+        return description;
+    }
+
+    public string? Redo()
+    {
+        if (_editHistory.Redo(out var snapshot) is not { } description)
+        {
+            return null;
+        }
+
+        RestoreEditSnapshot(snapshot);
+        return description;
     }
 
     public void SaveEditedImage(Stream destination)
@@ -644,6 +684,7 @@ public sealed class ImageCanvas : Control
             if (measurement.Length > 0.001)
             {
                 _measurements.Add(measurement);
+                RecordEdit("添加测量");
                 MeasurementsChanged?.Invoke(this, EventArgs.Empty);
             }
 
@@ -712,7 +753,41 @@ public sealed class ImageCanvas : Control
         _lastPointerCanvasPosition = null;
         ClearMeasurements();
         ClearAnnotations();
+        ResetEditHistory();
         bitmap?.Dispose();
+    }
+
+    private void RecordEdit(string description)
+    {
+        _editHistory.Record(CaptureEditSnapshot(), description);
+    }
+
+    private EditorSnapshot CaptureEditSnapshot()
+    {
+        return new EditorSnapshot(
+            [.. _measurements],
+            [.. _annotations]);
+    }
+
+    private void RestoreEditSnapshot(EditorSnapshot snapshot)
+    {
+        _measurements.Clear();
+        _measurements.AddRange(snapshot.Measurements);
+        _annotations.Clear();
+        _annotations.AddRange(snapshot.Annotations);
+        _isMeasuring = false;
+        _measurementDraft = null;
+        _measurementPointer?.Capture(null);
+        _measurementPointer = null;
+        _annotationDraftAnchor = null;
+        InvalidateVisual();
+        MeasurementsChanged?.Invoke(this, EventArgs.Empty);
+        AnnotationsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void ResetEditHistory()
+    {
+        _editHistory.Reset(CaptureEditSnapshot(), "打开图片");
     }
 
     private void ReportPointerPosition(Point position)
