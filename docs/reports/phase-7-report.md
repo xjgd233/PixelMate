@@ -192,11 +192,15 @@ Windows 签名与智能应用控制兼容工具提交：`0c4a30a`
 
 提交信息：`feat: add windows signing and devhost acceptance`
 
+用户反馈与离线包修正提交：`3039749`
+
+提交信息：`fix: save edited images and polish native UI`
+
 ## 九、等待用户验收
 
 阶段 7 的代码、图标、快捷键、macOS 回归、自动化测试和 Windows x64 交叉发布均已完成。
 请在真实 Windows x64 环境解压并运行
-`artifacts/PixelMate-1.0.0-win-x64.zip`，重点验证：
+`artifacts/PixelMate-1.0.0-win-x64-offline.zip`，重点验证：
 
 详细步骤和记录模板已随包放入 `WINDOWS-ACCEPTANCE.md`。
 

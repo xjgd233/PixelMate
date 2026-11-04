@@ -151,10 +151,13 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 
 内置头像与赞助码提交：`ed33874`
 
+用户反馈修正提交：`3039749`
+
 提交信息：
 
 - `feat: add annotations settings and onboarding`
 - `feat: bundle author images in about page`
+- `fix: save edited images and polish native UI`
 
 阶段状态和本报告随后续文档提交保存。
 
