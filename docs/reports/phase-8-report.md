@@ -91,6 +91,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 重启应用后设置仍为 `16×`，按 `Z` 后 UI 正确选中 `16×`。
 - 关于页正确显示 Version 1.0.0、GitHub、QQ 与邮箱。
 - 点击 QQ 号码后显示“QQ 3163170085 已复制”。
+- 关于页成功加载内置头像与微信收款码；二维码边缘清晰、比例正常，没有被拉伸。
 
 ## 五、Computer Use 测试结果
 
@@ -105,14 +106,14 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 压缩包大小：约 `46 MB`
 - ZIP SHA-256：
-  `1e4a4887cb1aa356001555ba89ede233e76636cec9c8f003ab4a66ed4ce0e9c2`
+  `8b4277323e035a60d69780ddedbd25aec02665d516f383785324891211dbce97`
 - Windows 主程序、Skia、HarfBuzz 和 OpenGL 原生库仍为 x86-64 PE。
 - 本轮仍无法在真实 Windows x64 环境运行，平台验收状态不变。
 
 ## 七、已知问题
 
-- 用户表示头像和赞助码会放入图片文件夹，但截至本次测试，`~/Pictures`
-  中尚未出现可识别的头像或赞助码；关于页当前显示占位提示。
+- 已接入用户提供的 `头像.jpg` 和 `收款码.jpg` 作为内置关于页资源；
+  `~/Pictures` 中匹配关键词的图片仍会优先覆盖内置资源。
 - GitHub 地址暂按邮箱前缀使用 `https://github.com/xiaowenhao2333`；
   如实际主页不同，需要替换 `AppIdentity.GitHubUrl` 后重新构建。
 - 阶段 7 仍在等待真实 Windows 验收，因此阶段 8 只能记为“提前实现，待补验”。
@@ -122,7 +123,12 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 
 阶段实现提交：`2e1ee95`
 
-提交信息：`feat: add annotations settings and onboarding`
+内置头像与赞助码提交：`ed33874`
+
+提交信息：
+
+- `feat: add annotations settings and onboarding`
+- `feat: bundle author images in about page`
 
 阶段状态和本报告随后续文档提交保存。
 

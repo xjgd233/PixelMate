@@ -12,7 +12,7 @@
 | 5 | 像素放大镜 | 已验收 | 2026-11-04 | `0917a92` | [报告](reports/phase-5-report.md) |
 | 6 | 稳定性、性能与回归测试 | 已验收 | 2026-11-04 | `377f596` | [报告](reports/phase-6-report.md) |
 | 7 | Windows x64 正式发布 | 待验收 | — | `88077f7` | [报告](reports/phase-7-report.md) |
-| 8 | 批注、设置与关于 | 提前实现，待补验 | — | `2e1ee95` | [报告](reports/phase-8-report.md) |
+| 8 | 批注、设置与关于 | 提前实现，待补验 | — | `ed33874` | [报告](reports/phase-8-report.md) |
 
 ## 当前门禁
 
