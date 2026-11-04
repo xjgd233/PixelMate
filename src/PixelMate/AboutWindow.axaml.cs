@@ -85,10 +85,10 @@ public partial class AboutWindow : Window
         var pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         _avatarBitmap = LoadBitmap(
             AboutImageLocator.FindPicture(pictures, ["avatar", "头像"]),
-            "avares://PixelMate/Assets/About/avatar.png");
+            "avares://PixelMate/Assets/About/avatar.jpg");
         _sponsorBitmap = LoadBitmap(
             AboutImageLocator.FindPicture(pictures, ["sponsor", "赞助", "收款码", "赞赏"]),
-            "avares://PixelMate/Assets/About/sponsor.png");
+            "avares://PixelMate/Assets/About/sponsor.jpg");
 
         if (_avatarBitmap is not null)
         {
