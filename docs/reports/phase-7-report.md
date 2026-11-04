@@ -167,6 +167,10 @@ Windows 发布命令：
 
 阶段状态和本报告随后续文档提交保存。
 
+Windows 验收加固提交：`21f067b`
+
+提交信息：`fix: harden windows release acceptance`
+
 ## 九、等待用户验收
 
 阶段 7 的代码、图标、快捷键、macOS 回归、自动化测试和 Windows x64 交叉发布均已完成。
