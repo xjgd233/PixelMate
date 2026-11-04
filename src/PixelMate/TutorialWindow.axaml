@@ -22,14 +22,12 @@
         <Style Selector="TextBlock.guideTitle">
             <Setter Property="Foreground" Value="{StaticResource DialogTextBrush}" />
             <Setter Property="FontSize" Value="17" />
-            <Setter Property="LineHeight" Value="23" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
         <Style Selector="TextBlock.guideBody">
             <Setter Property="Foreground" Value="{StaticResource DialogMutedBrush}" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="LineHeight" Value="19" />
         </Style>
         <Style Selector="Border.guideCard">
             <Setter Property="Padding" Value="15,13" />
@@ -39,8 +37,8 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Button.primary">
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Padding" Value="18,4" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="18,6" />
             <Setter Property="CornerRadius" Value="7" />
             <Setter Property="Background" Value="{StaticResource DialogAccentBrush}" />
             <Setter Property="Foreground" Value="White" />
@@ -54,12 +52,10 @@
             <TextBlock Text="第一次使用 PixelMate"
                        Foreground="{StaticResource DialogTextBrush}"
                        FontSize="25"
-                       LineHeight="32"
                        FontWeight="SemiBold" />
             <TextBlock Text="几分钟了解常用操作。这里只测量和检查图片，不会改写或上传源文件。"
                        Foreground="{StaticResource DialogMutedBrush}"
                        FontSize="12"
-                       LineHeight="18"
                        TextWrapping="Wrap" />
         </StackPanel>
 

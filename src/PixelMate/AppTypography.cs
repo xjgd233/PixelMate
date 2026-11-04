@@ -5,8 +5,8 @@ namespace PixelMate;
 public static class AppTypography
 {
     public const string SystemFontFamilyName =
-        "SF Pro Text, SF Pro Display, -apple-system, Helvetica Neue, PingFang SC, "
-        + "Hiragino Sans GB, Microsoft YaHei UI, Segoe UI";
+        "Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, Microsoft YaHei, "
+        + "SF Pro Text, SF Pro Display, PingFang SC, Hiragino Sans GB, Noto Sans CJK SC";
 
     public static FontFamily SystemFontFamily { get; } =
         new(SystemFontFamilyName);

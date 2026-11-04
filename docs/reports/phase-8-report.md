@@ -16,8 +16,10 @@
 - 新增“保存图片”按钮及 `⌘/Ctrl+S`，使用系统保存位置选择器输出 PNG。
 - 导出的 PNG 保持原图分辨率，并将当前全部测量线、长度标签和批注合成到输出图片。
 - 主窗口自绘标题栏支持拖动移动，双击可在最大化和还原之间切换。
-- 移除 Inter 字体依赖，界面优先使用 SF Pro / 苹方等 Apple 系统字体，
-  并统一数字、控件和说明文字的行高。
+- 移除 Inter 字体依赖；Windows 优先使用 Segoe UI / 微软雅黑，macOS 使用
+  SF Pro / 苹方，避免跨平台字体度量混用。
+- 移除单行文本的固定行高和按钮固定高度，改用系统字体自然行框、
+  `MinHeight` 与垂直居中，修复 Windows 高 DPI 下文字偏挤或被裁切的问题。
 - 新增设置窗口，可从顶部工具栏的滑杆按钮打开。
 - 设置支持默认放大镜倍率、记住上次图片文件夹、每次启动显示操作指南。
 - 设置通过原有原子写入机制保存到本机 `settings.json`。
@@ -80,7 +82,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
   -v:minimal
 ```
 
-结果：90 个测试通过，0 个失败，0 个跳过。
+结果：91 个测试通过，0 个失败，0 个跳过。
 
 新增回归覆盖：
 
@@ -90,6 +92,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 非法放大镜倍率回退到 12×。
 - 图片文件夹关键词匹配、扩展名过滤和缺图回退。
 - 导出图片的默认文件名和测量/批注叠加比例。
+- 平台原生字体优先级，避免 Windows 误用 Apple 字体度量。
 
 ## 四、实际运行测试
 
@@ -129,9 +132,9 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,267,544` 字节
+- 压缩包大小：`47,267,679` 字节
 - ZIP SHA-256：
-  `2f97ae396350da33d61a7e2b66e2a1671f54e324c0ff201d5fee20e34260f1a7`
+  `3ca6ba0d4a4f49d6bb1267c6d35efef31ca4ba794dd33a6291020f2f931b56a9`
 - Windows 主程序、Skia、HarfBuzz 和 OpenGL 原生库仍为 x86-64 PE。
 - 阶段 7 验收修正后已重新发布，发布包增加 Per-Monitor V2 高 DPI 清单和
   `WINDOWS-ACCEPTANCE.md` 实机验收清单。

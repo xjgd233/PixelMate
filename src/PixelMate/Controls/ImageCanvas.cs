@@ -1157,10 +1157,7 @@ public sealed class ImageCanvas : Control
             FlowDirection.LeftToRight,
             MeasurementTypeface,
             11,
-            AnnotationLabelTextBrush)
-        {
-            LineHeight = 16
-        };
+            AnnotationLabelTextBrush);
 
         const double horizontalPadding = 8;
         const double verticalPadding = 5;
@@ -1220,10 +1217,7 @@ public sealed class ImageCanvas : Control
             FlowDirection.LeftToRight,
             MeasurementTypeface,
             11.5 * scale,
-            AnnotationLabelTextBrush)
-        {
-            LineHeight = 16 * scale
-        };
+            AnnotationLabelTextBrush);
 
         var horizontalPadding = 8 * scale;
         var verticalPadding = 5 * scale;

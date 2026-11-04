@@ -107,7 +107,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 ```
 
 初次结果为 72 个测试通过；后续批注、设置、导出与字体修正追加回归后，
-当前代码共 90 个测试通过，
+当前代码共 91 个测试通过，
 0 个失败，0 个跳过。
 
 Windows 发布命令：
@@ -147,10 +147,10 @@ Windows 发布命令：
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,267,544` 字节
+- 压缩包大小：`47,267,679` 字节
 - 解压后目录大小：约 `106 MB`
 - ZIP SHA-256：
-  `2f97ae396350da33d61a7e2b66e2a1671f54e324c0ff201d5fee20e34260f1a7`
+  `3ca6ba0d4a4f49d6bb1267c6d35efef31ca4ba794dd33a6291020f2f931b56a9`
 - `PixelMate.exe`：PE32+ GUI，x86-64。
 - `PixelMate.dll`：PE32+ .NET 程序集，x86-64。
 - `libSkiaSharp.dll`、`libHarfBuzzSharp.dll`、`av_libglesv2.dll`：x86-64 PE。
