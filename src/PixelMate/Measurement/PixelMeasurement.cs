@@ -19,7 +19,7 @@ public static class MeasurementFormatting
     {
         return string.Create(
             CultureInfo.InvariantCulture,
-            $"L {FormatNumber(measurement.Length)} px  ΔX {FormatNumber(measurement.DeltaX)}  ΔY {FormatNumber(measurement.DeltaY)}");
+            $"{FormatNumber(measurement.Length)}px");
     }
 
     public static string FormatClipboard(IReadOnlyList<PixelMeasurement> measurements)

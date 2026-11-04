@@ -64,7 +64,7 @@ public class PixelMeasurementTests
         var label = MeasurementFormatting.FormatLabel(measurement);
         var clipboard = MeasurementFormatting.FormatClipboard([measurement]);
 
-        Assert.Equal("L 119.82 px  ΔX 100  ΔY 66", label);
+        Assert.Equal("119.82px", label);
         Assert.Equal(
             "1. L 119.82 px | ΔX 100 | ΔY 66 | (10, 10) → (110, 76)",
             clipboard);

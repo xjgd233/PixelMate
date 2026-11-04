@@ -29,8 +29,8 @@ public sealed class ImageCanvas : Control
     private static readonly IBrush PickerMutedTextBrush = new SolidColorBrush(Color.Parse("#AFAFB6"));
     private static readonly IPen PickerBorderPen =
         new Pen(new SolidColorBrush(Color.Parse("#5A5A62")), 1);
-    private static readonly IPen MeasurementShadowPen = new Pen(MeasurementShadowBrush, 4);
-    private static readonly IPen MeasurementPen = new Pen(MeasurementBrush, 1.6);
+    private static readonly IPen MeasurementShadowPen = new Pen(MeasurementShadowBrush, 2.8);
+    private static readonly IPen MeasurementPen = new Pen(MeasurementBrush, 1.1);
     private static readonly IPen MeasurementLabelBorderPen =
         new Pen(new SolidColorBrush(Color.Parse("#995E5140")), 1);
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
@@ -536,8 +536,8 @@ public sealed class ImageCanvas : Control
 
     private static void DrawEndpoint(DrawingContext context, Point point)
     {
-        context.DrawEllipse(MeasurementShadowBrush, null, point, 5.5, 5.5);
-        context.DrawEllipse(MeasurementEndpointInnerBrush, null, point, 3.2, 3.2);
+        context.DrawEllipse(MeasurementShadowBrush, null, point, 4, 4);
+        context.DrawEllipse(MeasurementEndpointInnerBrush, null, point, 2.2, 2.2);
     }
 
     private void DrawMeasurementLabel(
@@ -551,11 +551,11 @@ public sealed class ImageCanvas : Control
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             MeasurementTypeface,
-            11,
+            10.5,
             MeasurementLabelTextBrush);
 
-        const double horizontalPadding = 8;
-        const double verticalPadding = 4;
+        const double horizontalPadding = 7;
+        const double verticalPadding = 3;
         var width = text.WidthIncludingTrailingWhitespace + (horizontalPadding * 2);
         var height = text.Height + (verticalPadding * 2);
 
@@ -566,7 +566,7 @@ public sealed class ImageCanvas : Control
         var normalY = lineLength > 0.001 ? dx / lineLength : -1;
         var middleX = (start.X + end.X) / 2;
         var middleY = (start.Y + end.Y) / 2;
-        const double labelOffset = 20;
+        const double labelOffset = 14;
 
         var left = middleX + (normalX * labelOffset) - (width / 2);
         var top = middleY + (normalY * labelOffset) - (height / 2);
