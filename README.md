@@ -120,6 +120,27 @@ artifacts/PixelMate-1.0.0-win-x64.zip
 Windows 实机验收步骤见
 [`docs/windows-acceptance-checklist.md`](docs/windows-acceptance-checklist.md)。
 
+如果 Windows 11“智能应用控制”阻止未签名程序，可以先生成不修改系统安全设置的
+开发验收包：
+
+```sh
+./scripts/publish-windows-devhost-x64.sh
+```
+
+说明见 [`docs/windows-devhost-testing.md`](docs/windows-devhost-testing.md)。
+
+取得商业 Authenticode 证书后，可在 Windows 上按证书指纹签名并重新打包：
+
+```powershell
+.\scripts\sign-windows-x64.ps1 -CertificateThumbprint "证书SHA1指纹"
+```
+
+脚本会使用 SHA-256 和 DigiCert 时间戳签署 `PixelMate.exe`、`PixelMate.dll`，
+并通过 `signtool verify /pa /all` 验证签名。
+
+证书申请、硬件令牌/云签名、指纹获取和验证说明见
+[`docs/windows-code-signing.md`](docs/windows-code-signing.md)。
+
 当前 Windows 包已从 macOS 成功交叉发布并完成 PE 架构与依赖检查，但尚未在真实
 Windows 机器上运行。阶段 7 必须完成 Windows 启动、文件选择器、剪贴板、WebP、
 透明 PNG、高 DPI 和快捷键验证后才能验收。

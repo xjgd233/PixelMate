@@ -17,6 +17,9 @@
   macOS 元数据的 Windows ZIP。
 - Windows 应用清单增加 `PerMonitorV2` 高 DPI 感知，避免系统整体位图拉伸。
 - 发布目录附带 Windows 实机验收清单。
+- 增加可选商业 Authenticode 签名脚本，按证书指纹签署主程序并执行时间戳与验证。
+- 增加不关闭 Windows 智能应用控制的开发验收包，通过已签名的 `dotnet.exe`
+  承载未签名程序；该方案只用于功能验收，需要 .NET 10 Runtime。
 - 增加 Photoshop 风格的常用快捷键：
   - `M` 测量、`I` 取色、`Z` 放大镜。
   - 按住空格临时切换抓手，左键拖动平移。
@@ -40,6 +43,9 @@
 - `scripts/generate-app-icons.py`
 - `scripts/publish-windows-x64.ps1`
 - `scripts/publish-windows-x64.sh`
+- `scripts/publish-windows-devhost-x64.sh`
+- `scripts/sign-windows-x64.ps1`
+- `scripts/windows/START-PIXELMATE-DEVHOST.cmd`
 - `scripts/macos/Info.plist`
 - `scripts/run-macos.sh`
 - `src/PixelMate/app.manifest`
@@ -158,6 +164,8 @@ Windows 发布命令：
 - 自包含包约 `106 MB`，主要来自 .NET 运行时与图形原生库。本轮按项目规范没有
   启用有兼容风险的裁剪。
 - 发布包未进行 Windows 代码签名；Windows SmartScreen 可能显示未知发布者提示。
+- Windows 11 智能应用控制已实际拦截未签名 `PixelMate.exe`，且弹窗没有“仍要运行”
+  选项。正式公开分发仍应使用商业 Authenticode 证书；开发验收包仅用于临时测试。
 
 ## 八、Git 提交记录
 
