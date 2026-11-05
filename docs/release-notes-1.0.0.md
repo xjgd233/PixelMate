@@ -63,7 +63,9 @@ Windows x64：
 
 - 已从 macOS 成功交叉发布自包含目录。
 - 已检查主程序、.NET 运行时及 Skia、HarfBuzz、OpenGL 原生依赖均为 x86-64 PE。
-- 仍待真实 Windows 环境完成启动、文件选择器、剪贴板、WebP 解码、透明 PNG、高 DPI 和快捷键验证。
+- 已在真实 Windows x64 环境通过启动、文件选择器、剪贴板、WebP 解码、透明 PNG、
+  高 DPI、快捷键、测量、批注和导出验证。
+- 全局字体回退已收紧为单一平台字体族，最新离线包仍待 Windows 字体复验。
 
 ## 已知限制
 
