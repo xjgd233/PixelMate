@@ -241,4 +241,5 @@ macOS 复核范围：
 - macOS 真实窗口验证了黄色自定义输入、蓝色快捷色块、上次颜色继承、无效颜色拒绝、
   两行多色批注显示和 PNG 导出；导出文件为
   `/private/tmp/pixelmate-annotation-style.png`。
+- Git 提交：`5ca71f3`（`feat: customize annotation colors and framing`）。
 - 阶段 8 原有用户验收状态不改写；本次视觉修订等待用户复验。
