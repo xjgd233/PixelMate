@@ -109,7 +109,7 @@ dotnet run --project src/PixelMate/PixelMate.csproj
 | 平台 | 当前状态 |
 | --- | --- |
 | macOS ARM64 | 已完成实际窗口功能测试；可从源码运行 |
-| Windows x64 | 已完成自包含交叉构建；仍需真实 Windows 环境验收 |
+| Windows x64 | Windows 实机核心功能通过；字体显示修正待复验 |
 
 当前仓库尚未提供正式公开下载包。Windows 用户可按下方命令自行构建；未签名程序可能
 被 Windows SmartScreen 或智能应用控制拦截。

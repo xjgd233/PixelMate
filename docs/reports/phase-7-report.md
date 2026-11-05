@@ -31,6 +31,9 @@
   - `⌘/Ctrl+C` 根据当前上下文复制测量结果或 HEX。
   - `Delete` / `Backspace` 清除全部测量。
 - 快捷键提示在 macOS 显示 `⌘`，在 Windows 显示 `Ctrl+`。
+- 字体绑定进一步收紧为每个平台只使用一个完整字体族：
+  Windows `Microsoft YaHei UI`，macOS `PingFang SC`，不再向 Avalonia
+  提供中西文回退列表。回归测试会同时验证字体族名称和列表长度。
 - 修复干净还原后 Debug 构建暴露的 Avalonia 12 开发者工具挂接方式：
   从已过时的 `WithDeveloperTools()` 改为 `App.Initialize()` 中的
   `AttachDeveloperTools()`。
@@ -59,6 +62,8 @@
 - `src/PixelMate/MainWindow.axaml`
 - `src/PixelMate/MainWindow.axaml.cs`
 - `src/PixelMate/Controls/ImageCanvas.cs`
+- `src/PixelMate/AppTypography.cs`
+- `tests/PixelMate.Tests/AppTypographyTests.cs`
 - `src/PixelMate/Assets/PixelMate.png`
 - `src/PixelMate/Assets/PixelMate.ico`
 - `src/PixelMate/Assets/PixelMate.icns`
@@ -115,6 +120,9 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 2026-11-05 复跑结果：Release 构建 0 个警告、0 个错误；
 `PixelMate.Tests` 共 94 项通过，0 项失败，0 项跳过。
 
+字体回退列表修复后再次复跑：Release 构建 0 个警告、0 个错误；
+`PixelMate.Tests` 共 94 项通过，0 项失败，0 项跳过。
+
 Windows 发布命令：
 
 ```sh
@@ -147,6 +155,9 @@ Windows 发布命令：
   - 设置页版本显示 `PixelMate 1.0.0`；关于页头像、联系方式、GitHub 和赞助码正常显示。
 - 2026-11-05 的发布包已包含撤销/前进提交 `02f3741`，修复了上一包早于
   该提交生成的问题。
+- 用户已在真实 Windows x64 环境完成其余核心验收项，并明确反馈除字体显示外
+  均正常。字体修正后已在 macOS 真实窗口复核主界面、设置与关于页无布局回归；
+  Windows 字体仍需用户复验。
 
 ## 五、Computer Use 测试结果
 
@@ -161,10 +172,10 @@ Windows 发布命令：
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,271,877` 字节
+- 压缩包大小：`47,271,488` 字节
 - 解压后目录大小：约 `106 MB`
 - ZIP SHA-256：
-  `82a00400b65b50cc3424d758c3a16684f5102dc4fd3ca33fdf3b556623fcd657`
+  `cb7942d0bda8411d770b010cb9fa334336a3267b7ef3ac3ed4128b6030c2c08b`
 - `devhost` ZIP SHA-256：
   `f2c2eedc561b693d102714c4de0c010eeb969eeeb1852d66313a0a9f04968671`
 - `PixelMate.exe`：PE32+ GUI，x86-64。
@@ -181,8 +192,8 @@ Windows 发布命令：
 ## 七、已知问题
 
 - 当前机器只有 macOS ARM64，没有真实 Windows x64 运行环境。
-- 因此本轮只能确认 Windows 包的结构、架构、依赖和压缩完整性，不能声称启动、
-  文件选择器、剪贴板、WebP、透明 PNG、高 DPI 和快捷键已在 Windows 通过。
+- 用户已在远程 Windows x64 环境验证启动、文件选择器、剪贴板、WebP、透明 PNG、
+  高 DPI 和快捷键等功能通过；目前只剩字体显示复验。
 - 自包含包约 `106 MB`，主要来自 .NET 运行时与图形原生库。本轮按项目规范没有
   启用有兼容风险的裁剪。
 - 发布包未进行 Windows 代码签名；Windows SmartScreen 可能显示未知发布者提示。
@@ -214,6 +225,10 @@ Windows 签名与智能应用控制兼容工具提交：`0c4a30a`
 
 提交信息：`fix: save edited images and polish native UI`
 
+字体回退列表修正提交：`91daa37`
+
+提交信息：`fix: use a single platform font family`
+
 ## 九、等待用户验收
 
 阶段 7 的代码、图标、快捷键、macOS 回归、自动化测试和 Windows x64 交叉发布均已完成。
@@ -229,4 +244,6 @@ Windows 签名与智能应用控制兼容工具提交：`0c4a30a`
 - `Ctrl+O/M/I/Z/C/0/1/+/-`、`[`/`]`、`Delete` 正常。
 - 高 DPI 下画布不模糊、不偏移。
 
-Windows 实测完成并明确确认后，才能将阶段 7 改记为“已验收”。
+Windows 实机除字体显示外已完成验证。请使用最新离线包复验工具栏、设置、关于页、
+状态栏、坐标、数字和按钮文字；字体显示通过并得到用户明确确认后，才能将阶段 7
+改记为“已验收”。

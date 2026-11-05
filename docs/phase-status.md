@@ -20,12 +20,14 @@
 - 阶段 7 已完成 macOS 侧实现、自动化测试、真实窗口交互和 Windows x64 交叉发布，当前处于“待验收”。
 - 2026-11-04 验收复跑已修复发布脚本可重复性和 Windows 高 DPI 清单；当前 ZIP 为
   `artifacts/PixelMate-1.0.0-win-x64.zip`，离线别名包为
-  `artifacts/PixelMate-1.0.0-win-x64-offline.zip`，均待 Windows 实机验收。
+  `artifacts/PixelMate-1.0.0-win-x64-offline.zip`，最新字体修正包待 Windows 复验。
 - 2026-11-05 已重新生成自包含与 `devhost` 发布包，包含最新撤销/前进和字体修正；
   94 项自动化测试通过，macOS 真实窗口已复测四种图片格式、透明取色、测量历史、
   滚轮缩放、保存导出、设置与关于页。
-- 当前 UURemote 中的两台 Windows 设备均显示离线，且客户端报告错误 2003，
-  因此本轮尚不能进行 Windows 实机启动、剪贴板、高 DPI 和快捷键验证。
+- UURemote 恢复在线后，已在真实 Windows x64 环境完成启动、文件选择器、四格式图片、
+  透明取色、剪贴板、测量、放大镜、平移、批注、撤销/前进、保存导出和高 DPI 验证。
+- 用户于 2026-11-05 确认 Windows 实机除字体显示外均通过。阶段 7 仍因字体问题
+  保持“待验收”，修复后需要用户复验字体。
 - 用户截图确认 `PixelMate-devhost-win-x64` 是框架依赖开发包，直接双击
   `PixelMate.exe` 会要求安装 .NET Runtime。离线交付必须使用不含 `devhost`
   的自包含离线包；完整包已包含 .NET 10.0.14。
@@ -43,8 +45,9 @@
   保存导出。导出 PNG 为 `400 × 300`、8-bit RGBA，批注已正确合成。
 - 用户再次反馈 Windows 截图中的字体行高异常。已改为平台原生字体优先，移除单行
   文本固定行高和按钮固定高度，避免 Windows 字体被 macOS 行框限制。
-- macOS 复测仍发现中西文字体回退混合，现改为运行时绑定单一完整字体族：
-  macOS `PingFang SC`，Windows `Microsoft YaHei UI`。
+- macOS 复测发现中西文字体回退混合。原配置仍包含 YaHei 与 Segoe 回退列表；
+  现改为运行时只绑定一个完整字体族：macOS `PingFang SC`，Windows
+  `Microsoft YaHei UI`。自动化测试新增断言，确保字体族不再退化为列表。
 - 按用户要求增加 Office 风格撤销/前进按钮及快捷键，历史覆盖测量和批注的新增与
   清空操作，并已在 macOS 真实窗口完成按钮和快捷键验证。
 - 阶段 8 已按用户 2026-11-05 的明确指令完成 macOS 功能验收；阶段 7 仍需完成
