@@ -12,6 +12,8 @@ public sealed class AppTypographyTests
             : OperatingSystem.IsWindows()
                 ? "Microsoft YaHei UI"
                 : "Noto Sans CJK SC";
-        Assert.StartsWith(expectedPrimaryFont, familyNames, StringComparison.Ordinal);
+        Assert.Equal(expectedPrimaryFont, familyNames);
+        Assert.Single(AppTypography.SystemFontFamily.FamilyNames);
+        Assert.Equal(expectedPrimaryFont, AppTypography.SystemFontFamily.Name);
     }
 }
