@@ -109,10 +109,11 @@ dotnet run --project src/PixelMate/PixelMate.csproj
 | 平台 | 当前状态 |
 | --- | --- |
 | macOS ARM64 | 已完成实际窗口功能测试；可从源码运行 |
-| Windows x64 | Windows 实机核心功能通过；字体显示修正待复验 |
+| Windows x64 | 已完成 Windows 实机全流程验收；提供自包含离线包 |
 
-当前仓库尚未提供正式公开下载包。Windows 用户可按下方命令自行构建；未签名程序可能
-被 Windows SmartScreen 或智能应用控制拦截。
+正式公开下载包位于 GitHub Releases，推荐下载
+`PixelMate-1.0.0-win-x64-offline.zip`。完整解压后即可离线运行，不需要额外安装
+.NET Runtime。当前版本未签名，Windows SmartScreen 或智能应用控制仍可能提示风险。
 
 ## 构建与测试
 

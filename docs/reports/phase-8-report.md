@@ -6,7 +6,7 @@
 
 阶段状态：已验收
 
-前置阶段：阶段 7（待验收）
+前置阶段：阶段 7（已验收，门禁已闭环）
 
 ## 一、完成内容
 
@@ -101,7 +101,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 2026-11-05 验收复跑结果：
 
 - Release 构建 0 个警告、0 个错误。
-- `PixelMate.Tests` 94 项全部通过，0 项失败，0 项跳过。
+- `PixelMate.Tests` 101 项全部通过，0 项失败，0 项跳过。
 
 新增回归覆盖：
 
@@ -169,21 +169,21 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,271,877` 字节
+- 压缩包大小：`75,059,016` 字节
 - ZIP SHA-256：
-  `82a00400b65b50cc3424d758c3a16684f5102dc4fd3ca33fdf3b556623fcd657`
+  `1efc4a1e9c8245c911e6838bf9450335cac08a5af51bd18407aa97d79853344e`
 - Windows 主程序、Skia、HarfBuzz 和 OpenGL 原生库仍为 x86-64 PE。
 - 阶段 7 验收修正后已重新发布，发布包增加 Per-Monitor V2 高 DPI 清单和
   `WINDOWS-ACCEPTANCE.md` 实机验收清单。
-- 本轮仍无法在真实 Windows x64 环境运行，平台验收状态不变。
+- 最终包已在真实 Windows x64 环境完成功能回归；阶段 7 验收后门禁已闭环。
 
 ## 七、已知问题
 
 - 已接入用户提供的 `头像.jpg` 和 `收款码.jpg` 作为内置关于页资源；
   `~/Pictures` 中匹配关键词的图片仍会优先覆盖内置资源。
 - GitHub 地址已按浏览器实际账号修正为 `https://github.com/xjgd233`。
-- 阶段 8 已按用户明确指令在 macOS 完成功能验收；Windows 平台回归仍与阶段 7
-  一并在真实 Windows 环境中补做，不能用本报告代替阶段 7 的平台验收。
+- 阶段 8 已按用户明确指令在 macOS 完成功能验收；Windows 平台回归已随阶段 7
+  在真实 Windows 环境完成并由用户确认。
 - 批注只保存在当前会话中，切换图片或关闭应用后清空，不修改源图片。
 
 ## 八、Git 提交记录
@@ -207,7 +207,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 - 用户于 2026-11-05 明确要求先验收阶段 8，并随后发布到 GitHub。
 - 阶段 8 的 macOS 功能、保存导出、设置、首次指南和关于页已完成复核。
 - 阶段 8 状态更新为“已验收”，用户验收日期为 2026-11-05。
-- Windows 实机回归仍与阶段 7 的待补验项合并处理，阶段 7 保持“待验收”。
+- Windows 实机回归已与阶段 7 一并完成，阶段 7 已由用户确认验收。
 
 macOS 复核范围：
 
@@ -226,8 +226,8 @@ macOS 复核范围：
   系统字体缓存可能让显式字体仍回退到其他 CJK 字体。
 - 后续阶段 7 修复已改为随包内置 Noto Sans CJK SC 常规/粗体，所有平台通过
   `avares://PixelMate/Assets/Fonts#Noto Sans CJK SC` 使用同一字体族。
-- 最新离线包为 `artifacts/PixelMate-1.0.0-win-x64-offline.zip`，SHA-256：
-  `0378242f3bd70366e9285cf20cf72a94dc925d12670907381929538128b7a501`。
+- 最新离线包为 `artifacts/PixelMate-1.0.0-win-x64-offline.zip`，最终 SHA-256
+  记录见本报告“六、发布产物”。
 
 ## 十一、后续批注样式修订
 
@@ -242,4 +242,4 @@ macOS 复核范围：
   两行多色批注显示和 PNG 导出；导出文件为
   `/private/tmp/pixelmate-annotation-style.png`。
 - Git 提交：`5ca71f3`（`feat: customize annotation colors and framing`）。
-- 阶段 8 原有用户验收状态不改写；本次视觉修订等待用户复验。
+- 用户于 2026-11-05 确认视觉修订和阶段 8 最终交付通过验收。

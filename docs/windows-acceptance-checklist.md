@@ -61,4 +61,5 @@ Get-FileHash .\PixelMate-1.0.0-win-x64-offline.zip -Algorithm SHA256
 - 每一步的实际结果和异常截图。
 - 若应用无法启动，记录 SmartScreen 提示或 Windows 事件查看器中的应用错误。
 
-全部核心项通过后，由用户明确确认，阶段 7 才能从“待验收”改为“已验收”。
+阶段 7 已于 2026-11-05 由用户确认验收通过。本清单保留为后续 Windows 版本回归时
+的验收基线。
