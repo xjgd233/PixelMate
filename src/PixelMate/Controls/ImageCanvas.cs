@@ -78,7 +78,7 @@ public sealed class ImageCanvas : Control
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
     private static readonly Cursor MeasuringCursor = new(StandardCursorType.Cross);
     private static readonly Typeface MeasurementTypeface =
-        new(AppTypography.SystemFontFamily);
+        new(AppTypography.ApplicationFontFamily);
 
     private readonly SolidColorBrush _eyedropperSwatchBrush =
         new(Avalonia.Media.Colors.Transparent);

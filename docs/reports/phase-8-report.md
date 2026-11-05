@@ -215,3 +215,13 @@ macOS 复核范围：
 
 上述 macOS 项目均已复核。明天的 Windows 远程验收将重点覆盖标题栏移动、
 保存对话框、字体行高、批注坐标、撤销/前进和快捷键。
+
+## 十、后续字体修正
+
+- 用户在真实 Windows x64 环境确认阶段 8 功能除全局字体显示外均正常。
+- 经 Avalonia 官方文档与 GitHub 问题 `#22464` 核实，Avalonia 12 的 Windows
+  系统字体缓存可能让显式字体仍回退到其他 CJK 字体。
+- 后续阶段 7 修复已改为随包内置 Noto Sans CJK SC 常规/粗体，所有平台通过
+  `avares://PixelMate/Assets/Fonts#Noto Sans CJK SC` 使用同一字体族。
+- 最新离线包为 `artifacts/PixelMate-1.0.0-win-x64-offline.zip`，SHA-256：
+  `0378242f3bd70366e9285cf20cf72a94dc925d12670907381929538128b7a501`。

@@ -3,17 +3,14 @@ namespace PixelMate.Tests;
 public sealed class AppTypographyTests
 {
     [Fact]
-    public void SystemFontFamily_UsesOneCompleteNativeCjkFamilyPerPlatform()
+    public void ApplicationFont_UsesBundledCompleteCjkFamily()
     {
-        var familyNames = AppTypography.SystemFontFamilyName;
-
-        var expectedPrimaryFont = OperatingSystem.IsMacOS()
-            ? "PingFang SC"
-            : OperatingSystem.IsWindows()
-                ? "Microsoft YaHei UI"
-                : "Noto Sans CJK SC";
-        Assert.Equal(expectedPrimaryFont, familyNames);
-        Assert.Single(AppTypography.SystemFontFamily.FamilyNames);
-        Assert.Equal(expectedPrimaryFont, AppTypography.SystemFontFamily.Name);
+        Assert.Equal(
+            "avares://PixelMate/Assets/Fonts#Noto Sans CJK SC",
+            AppTypography.BundledFontFamilyUri);
+        Assert.Equal(
+            AppTypography.BundledFontFamilyName,
+            AppTypography.ApplicationFontFamily.Name);
+        Assert.Single(AppTypography.ApplicationFontFamily.FamilyNames);
     }
 }

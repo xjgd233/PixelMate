@@ -4,13 +4,11 @@ namespace PixelMate;
 
 public static class AppTypography
 {
-    public static string SystemFontFamilyName =>
-        OperatingSystem.IsMacOS()
-            ? "PingFang SC"
-            : OperatingSystem.IsWindows()
-                ? "Microsoft YaHei UI"
-                : "Noto Sans CJK SC";
+    public const string BundledFontFamilyName = "Noto Sans CJK SC";
 
-    public static FontFamily SystemFontFamily { get; } =
-        new(SystemFontFamilyName);
+    public const string BundledFontFamilyUri =
+        "avares://PixelMate/Assets/Fonts#Noto Sans CJK SC";
+
+    public static FontFamily ApplicationFontFamily { get; } =
+        new(BundledFontFamilyUri);
 }

@@ -31,9 +31,10 @@
   - `⌘/Ctrl+C` 根据当前上下文复制测量结果或 HEX。
   - `Delete` / `Backspace` 清除全部测量。
 - 快捷键提示在 macOS 显示 `⌘`，在 Windows 显示 `Ctrl+`。
-- 字体绑定进一步收紧为每个平台只使用一个完整字体族：
-  Windows `Microsoft YaHei UI`，macOS `PingFang SC`，不再向 Avalonia
-  提供中西文回退列表。回归测试会同时验证字体族名称和列表长度。
+- 字体改为随包内置 Noto Sans CJK SC 常规与粗体，并通过
+  `avares://PixelMate/Assets/Fonts#Noto Sans CJK SC` 引用。该方案依据
+  Avalonia 官方自定义字体文档，用于规避 Windows 系统字体缓存和 CJK 回退问题；
+  回归测试会验证嵌入资源 URI、字体族名称和列表长度。
 - 修复干净还原后 Debug 构建暴露的 Avalonia 12 开发者工具挂接方式：
   从已过时的 `WithDeveloperTools()` 改为 `App.Initialize()` 中的
   `AttachDeveloperTools()`。
@@ -64,6 +65,10 @@
 - `src/PixelMate/Controls/ImageCanvas.cs`
 - `src/PixelMate/AppTypography.cs`
 - `tests/PixelMate.Tests/AppTypographyTests.cs`
+- `src/PixelMate/Assets/Fonts/NotoSansCJKsc-Regular.otf`
+- `src/PixelMate/Assets/Fonts/NotoSansCJKsc-Bold.otf`
+- `src/PixelMate/Assets/Fonts/OFL.txt`
+- `src/PixelMate/Assets/Fonts/FONT-NOTICE.md`
 - `src/PixelMate/Assets/PixelMate.png`
 - `src/PixelMate/Assets/PixelMate.ico`
 - `src/PixelMate/Assets/PixelMate.icns`
@@ -120,7 +125,7 @@ AVALONIA_TELEMETRY_OPTOUT=1 \
 2026-11-05 复跑结果：Release 构建 0 个警告、0 个错误；
 `PixelMate.Tests` 共 94 项通过，0 项失败，0 项跳过。
 
-字体回退列表修复后再次复跑：Release 构建 0 个警告、0 个错误；
+嵌入字体修复后再次复跑：Release 构建 0 个警告、0 个错误；
 `PixelMate.Tests` 共 94 项通过，0 项失败，0 项跳过。
 
 Windows 发布命令：
@@ -172,10 +177,10 @@ Windows 发布命令：
 - 发布目录：`artifacts/PixelMate-win-x64/`
 - 压缩包：`artifacts/PixelMate-1.0.0-win-x64.zip`
 - 离线压缩包：`artifacts/PixelMate-1.0.0-win-x64-offline.zip`
-- 压缩包大小：`47,271,601` 字节
-- 解压后目录大小：约 `106 MB`
+- 压缩包大小：`75,055,786` 字节
+- 解压后目录大小：约 `136 MB`
 - ZIP SHA-256：
-  `ef5d315e6be353f7e38b29992edc0312d2036925ac6f03c781c6d1e74892cf26`
+  `0378242f3bd70366e9285cf20cf72a94dc925d12670907381929538128b7a501`
 - `devhost` ZIP SHA-256：
   `f2c2eedc561b693d102714c4de0c010eeb969eeeb1852d66313a0a9f04968671`
 - `PixelMate.exe`：PE32+ GUI，x86-64。
@@ -194,8 +199,8 @@ Windows 发布命令：
 - 当前机器只有 macOS ARM64，没有真实 Windows x64 运行环境。
 - 用户已在远程 Windows x64 环境验证启动、文件选择器、剪贴板、WebP、透明 PNG、
   高 DPI 和快捷键等功能通过；目前只剩字体显示复验。
-- 自包含包约 `106 MB`，主要来自 .NET 运行时与图形原生库。本轮按项目规范没有
-  启用有兼容风险的裁剪。
+- 自包含包约 `136 MB`，主要来自 .NET 运行时、图形原生库和内置 Noto Sans CJK SC
+  常规/粗体。本轮按项目规范没有启用有兼容风险的裁剪。
 - 发布包未进行 Windows 代码签名；Windows SmartScreen 可能显示未知发布者提示。
 - Windows 11 智能应用控制已实际拦截未签名 `PixelMate.exe`，且弹窗没有“仍要运行”
   选项。正式公开分发仍应使用商业 Authenticode 证书；开发验收包仅用于临时测试。
