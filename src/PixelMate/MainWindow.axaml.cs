@@ -64,6 +64,7 @@ public partial class MainWindow : Window
         new(Avalonia.Media.Colors.Transparent);
     private ToolMode _activeTool;
     private PixelColor? _sampledColor;
+    private AnnotationTextColor _lastAnnotationTextColor = AnnotationTextColor.Default;
     private CancellationTokenSource? _imageOpenCancellation;
     private int _imageOpenVersion;
     private bool _isClosed;
@@ -436,8 +437,45 @@ public partial class MainWindow : Window
         AnnotationCoordinateTextBlock.Text =
             $"X {Math.Floor(e.Anchor.X)}  Y {Math.Floor(e.Anchor.Y)}";
         AnnotationTextBox.Text = string.Empty;
+        AnnotationColorTextBox.Text = _lastAnnotationTextColor.Hex;
+        UpdateAnnotationColorPreview();
         AnnotationEditorBackdrop.IsVisible = true;
         Dispatcher.UIThread.Post(() => AnnotationTextBox.Focus());
+    }
+
+    private void AnnotationColorPreset_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string color })
+        {
+            AnnotationColorTextBox.Text = color;
+            AnnotationTextBox.Focus();
+        }
+    }
+
+    private void AnnotationColorTextBox_TextChanged(
+        object? sender,
+        TextChangedEventArgs e)
+    {
+        UpdateAnnotationColorPreview();
+    }
+
+    private void UpdateAnnotationColorPreview()
+    {
+        if (!AnnotationTextColor.TryParseHex(AnnotationColorTextBox.Text, out var color))
+        {
+            AnnotationColorSwatch.Background =
+                new SolidColorBrush(Color.Parse("#2B2B2F"));
+            AnnotationColorPreviewTextBlock.Foreground =
+                new SolidColorBrush(Color.Parse("#74747B"));
+            AnnotationColorPreviewTextBlock.Text = "颜色格式无效";
+            return;
+        }
+
+        var brush = new SolidColorBrush(
+            Color.FromRgb(color.Red, color.Green, color.Blue));
+        AnnotationColorSwatch.Background = brush;
+        AnnotationColorPreviewTextBlock.Foreground = brush;
+        AnnotationColorPreviewTextBlock.Text = "示例文字";
     }
 
     private void SaveAnnotation_Click(object? sender, RoutedEventArgs e)
@@ -477,7 +515,16 @@ public partial class MainWindow : Window
             return;
         }
 
-        ImageCanvas.CommitAnnotation(text);
+        if (!AnnotationTextColor.TryParseHex(AnnotationColorTextBox.Text, out var color))
+        {
+            SetStatusMessage("请输入有效的字体颜色，例如 #FFD166", true);
+            AnnotationColorTextBox.Focus();
+            AnnotationColorTextBox.SelectAll();
+            return;
+        }
+
+        ImageCanvas.CommitAnnotation(text, color);
+        _lastAnnotationTextColor = color;
         CloseAnnotationEditor(cancelDraft: false);
         SetStatusMessage("已添加批注", false);
         ImageCanvas.Focus();
@@ -1067,7 +1114,7 @@ public partial class MainWindow : Window
             "放大并检查单个像素 (Z)；[ ] 调整倍率");
         ToolTip.SetTip(
             AnnotationToolButton,
-            "在图片上添加文字批注 (T)");
+            "在图片上添加可自定义颜色的文字批注 (T)");
         ToolTip.SetTip(
             FitButton,
             $"图片适应窗口 ({primary}0)");

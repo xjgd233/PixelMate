@@ -139,7 +139,7 @@
                         </Border>
                         <StackPanel Grid.Column="1" Spacing="4">
                             <TextBlock Text="添加文字批注" Classes="guideTitle" />
-                            <TextBlock Text="按 T 选择批注工具，点击图片任意位置输入文字。批注保留在原始图片坐标上，缩放或平移后仍会跟随图片。"
+                            <TextBlock Text="按 T 选择批注工具，点击图片任意位置输入文字，并可选择或输入字体颜色。批注保留在原始图片坐标上，缩放或平移后仍会跟随图片。"
                                        Classes="guideBody" />
                         </StackPanel>
                     </Grid>

@@ -67,13 +67,9 @@ public sealed class ImageCanvas : Control
     private static readonly IBrush AnnotationInnerBrush =
         new SolidColorBrush(Color.Parse("#F2FFFC"));
     private static readonly IBrush AnnotationLabelBackgroundBrush =
-        new SolidColorBrush(Color.Parse("#F0121A18"));
-    private static readonly IBrush AnnotationLabelTextBrush =
-        new SolidColorBrush(Color.Parse("#EFFFFB"));
-    private static readonly IPen AnnotationLeaderPen =
-        new Pen(new SolidColorBrush(Color.Parse("#CC63E6BE")), 1.2);
+        new SolidColorBrush(Color.Parse("#B8121A18"));
     private static readonly IPen AnnotationBorderPen =
-        new Pen(new SolidColorBrush(Color.Parse("#6663E6BE")), 1);
+        new Pen(new SolidColorBrush(Color.Parse("#9963E6BE")), 1);
     private static readonly Cursor PanReadyCursor = new(StandardCursorType.Hand);
     private static readonly Cursor PanningCursor = new(StandardCursorType.SizeAll);
     private static readonly Cursor MeasuringCursor = new(StandardCursorType.Cross);
@@ -376,14 +372,14 @@ public sealed class ImageCanvas : Control
         InvalidateVisual();
     }
 
-    public void CommitAnnotation(string text)
+    public void CommitAnnotation(string text, AnnotationTextColor textColor)
     {
         if (_annotationDraftAnchor is not { } anchor)
         {
             return;
         }
 
-        var annotation = PixelAnnotation.Create(anchor, text);
+        var annotation = PixelAnnotation.Create(anchor, text, textColor);
         _annotations.Add(annotation);
         _annotationDraftAnchor = null;
         RecordEdit("添加批注");
@@ -1225,14 +1221,18 @@ public sealed class ImageCanvas : Control
         PixelAnnotation annotation)
     {
         var anchor = Transform.ImageToCanvas(annotation.Anchor);
-        var anchorPoint = new Point(anchor.X, anchor.Y);
+        var textBrush = new SolidColorBrush(
+            Color.FromRgb(
+                annotation.TextColor.Red,
+                annotation.TextColor.Green,
+                annotation.TextColor.Blue));
         var displayText = new FormattedText(
             WrapAnnotationText(annotation.Text),
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             MeasurementTypeface,
             11,
-            AnnotationLabelTextBrush);
+            textBrush);
 
         const double horizontalPadding = 8;
         const double verticalPadding = 5;
@@ -1256,10 +1256,6 @@ public sealed class ImageCanvas : Control
         left = Math.Clamp(left, 6, Math.Max(6, Bounds.Width - width - 6));
         top = Math.Clamp(top, 6, Math.Max(6, Bounds.Height - height - 6));
         var labelRect = new Rect(left, top, width, height);
-        var leaderEnd = new Point(
-            labelRect.X > anchor.X ? labelRect.X : labelRect.Right,
-            labelRect.Y > anchor.Y ? labelRect.Y : labelRect.Bottom);
-        context.DrawLine(AnnotationLeaderPen, anchorPoint, leaderEnd);
         context.DrawRectangle(
             AnnotationLabelBackgroundBrush,
             AnnotationBorderPen,
@@ -1275,8 +1271,6 @@ public sealed class ImageCanvas : Control
                     labelRect.X + horizontalPadding,
                     labelRect.Y + verticalPadding));
         }
-
-        DrawAnnotationMarker(context, anchor);
     }
 
     private static void DrawExportAnnotation(
@@ -1286,13 +1280,18 @@ public sealed class ImageCanvas : Control
         double scale)
     {
         var anchorPoint = new Point(annotation.Anchor.X, annotation.Anchor.Y);
+        var textBrush = new SolidColorBrush(
+            Color.FromRgb(
+                annotation.TextColor.Red,
+                annotation.TextColor.Green,
+                annotation.TextColor.Blue));
         var displayText = new FormattedText(
             WrapAnnotationText(annotation.Text),
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             MeasurementTypeface,
             11.5 * scale,
-            AnnotationLabelTextBrush);
+            textBrush);
 
         var horizontalPadding = 8 * scale;
         var verticalPadding = 5 * scale;
@@ -1318,16 +1317,9 @@ public sealed class ImageCanvas : Control
         left = Math.Clamp(left, margin, Math.Max(margin, imageBounds.Width - width - margin));
         top = Math.Clamp(top, margin, Math.Max(margin, imageBounds.Height - height - margin));
         var labelRect = new Rect(left, top, width, height);
-        var leaderEnd = new Point(
-            labelRect.X > anchorPoint.X ? labelRect.X : labelRect.Right,
-            labelRect.Y > anchorPoint.Y ? labelRect.Y : labelRect.Bottom);
-        context.DrawLine(
-            new Pen(new SolidColorBrush(Color.Parse("#CC63E6BE")), 1.2 * scale),
-            anchorPoint,
-            leaderEnd);
         context.DrawRectangle(
             AnnotationLabelBackgroundBrush,
-            new Pen(new SolidColorBrush(Color.Parse("#6663E6BE")), scale),
+            new Pen(new SolidColorBrush(Color.Parse("#9963E6BE")), scale),
             labelRect,
             6 * scale,
             6 * scale);
@@ -1343,19 +1335,6 @@ public sealed class ImageCanvas : Control
                     labelRect.X + horizontalPadding,
                     labelRect.Y + verticalPadding));
         }
-
-        context.DrawEllipse(
-            AnnotationBrush,
-            null,
-            anchorPoint,
-            6 * scale,
-            6 * scale);
-        context.DrawEllipse(
-            AnnotationInnerBrush,
-            null,
-            anchorPoint,
-            2.4 * scale,
-            2.4 * scale);
     }
 
     private static void DrawAnnotationMarker(
