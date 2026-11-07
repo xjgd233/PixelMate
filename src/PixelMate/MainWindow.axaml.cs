@@ -70,6 +70,7 @@ public partial class MainWindow : Window
     private bool _isClosed;
     private bool _hasShownStartupTutorial;
     private string? _currentImagePath;
+    private ImagePoint? _annotationEditorAnchor;
 
     public MainWindow()
     {
@@ -85,6 +86,7 @@ public partial class MainWindow : Window
         ImageCanvas.EditHistoryChanged += ImageCanvas_EditHistoryChanged;
         ImageCanvas.ColorPicked += ImageCanvas_ColorPicked;
         ImageCanvas.AnnotationRequested += ImageCanvas_AnnotationRequested;
+        ImageCanvas.SizeChanged += (_, _) => PositionAnnotationEditor();
         AnnotationTextBox.AddHandler(
             InputElement.KeyDownEvent,
             AnnotationTextBox_KeyDown,
@@ -434,13 +436,44 @@ public partial class MainWindow : Window
         object? sender,
         Controls.AnnotationRequestedEventArgs e)
     {
+        _annotationEditorAnchor = e.Anchor;
         AnnotationCoordinateTextBlock.Text =
             $"X {Math.Floor(e.Anchor.X)}  Y {Math.Floor(e.Anchor.Y)}";
         AnnotationTextBox.Text = string.Empty;
         AnnotationColorTextBox.Text = _lastAnnotationTextColor.Hex;
         UpdateAnnotationColorPreview();
-        AnnotationEditorBackdrop.IsVisible = true;
-        Dispatcher.UIThread.Post(() => AnnotationTextBox.Focus());
+        AnnotationEditorLayer.IsVisible = true;
+        PositionAnnotationEditor();
+        Dispatcher.UIThread.Post(() =>
+        {
+            PositionAnnotationEditor();
+            AnnotationTextBox.Focus();
+        });
+    }
+
+    private void PositionAnnotationEditor()
+    {
+        if (!AnnotationEditorLayer.IsVisible
+            || _annotationEditorAnchor is not { } imageAnchor)
+        {
+            return;
+        }
+
+        var anchor = ImageCanvas.Transform.ImageToCanvas(imageAnchor);
+        var editorWidth = AnnotationEditorPanel.Bounds.Width > 0
+            ? AnnotationEditorPanel.Bounds.Width
+            : AnnotationEditorPanel.Width;
+        var editorHeight = AnnotationEditorPanel.Bounds.Height > 0
+            ? AnnotationEditorPanel.Bounds.Height
+            : 206;
+        var position = AnnotationEditorPlacement.Calculate(
+            anchor,
+            ImageCanvas.Bounds.Width,
+            ImageCanvas.Bounds.Height,
+            editorWidth,
+            editorHeight);
+        Canvas.SetLeft(AnnotationEditorPanel, position.X);
+        Canvas.SetTop(AnnotationEditorPanel, position.Y);
     }
 
     private void AnnotationColorPreset_Click(object? sender, RoutedEventArgs e)
@@ -532,7 +565,8 @@ public partial class MainWindow : Window
 
     private void CloseAnnotationEditor(bool cancelDraft)
     {
-        AnnotationEditorBackdrop.IsVisible = false;
+        AnnotationEditorLayer.IsVisible = false;
+        _annotationEditorAnchor = null;
         if (cancelDraft)
         {
             ImageCanvas.CancelAnnotationDraft();
@@ -543,7 +577,7 @@ public partial class MainWindow : Window
 
     private async void MainWindow_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (AnnotationEditorBackdrop.IsVisible)
+        if (AnnotationEditorLayer.IsVisible)
         {
             return;
         }
