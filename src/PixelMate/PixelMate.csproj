@@ -10,10 +10,10 @@
     <Description>轻量级图片像素测量和取色工具</Description>
     <Company>PixelMate</Company>
     <Authors>PixelMate</Authors>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0</InformationalVersion>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <InformationalVersion>1.0.1</InformationalVersion>
     <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 

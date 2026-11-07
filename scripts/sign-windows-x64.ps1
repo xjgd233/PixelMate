@@ -13,8 +13,8 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($OutputDir)) {
     $OutputDir = Join-Path $projectRoot "artifacts/PixelMate-win-x64"
 }
-$archivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64.zip"
-$offlineArchivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64-offline.zip"
+$archivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.1-win-x64.zip"
+$offlineArchivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.1-win-x64-offline.zip"
 
 if (-not (Test-Path $OutputDir -PathType Container)) {
     throw "Publish directory does not exist: $OutputDir"

@@ -3,13 +3,48 @@
 **一张图，一把尺，一支吸管。**
 
 PixelMate 是一款面向网页开发、UI 设计、切图和素材检查的轻量桌面工具。
-它可以测量图片中的真实像素距离、读取原始像素颜色、放大检查细节，并在图片上添加
-文字批注。测量和批注不会改写源文件，图片也始终留在本机。
+不用打开大型设计软件，也不用把截图传到网页：在同一个窗口里就能测量真实像素距离、
+读取原始颜色、放大检查细节、添加文字批注，并按原分辨率导出 PNG。
+
+测量和批注不会改写源文件，图片也始终留在本机。
 
 > PixelMate is a privacy-first desktop image inspector for pixel-accurate
 > measurement, color sampling, and annotation.
 
 ![PixelMate macOS 主界面](docs/images/pixelmate-overview.png)
+
+## 界面预览
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/pixelmate-measurement.png" alt="PixelMate 像素测量界面">
+      <br>
+      <strong>像素测量</strong><br>
+      查看总长度、水平/垂直距离与起止坐标。
+    </td>
+    <td width="50%">
+      <img src="docs/images/pixelmate-magnifier.png" alt="PixelMate 放大镜与取色界面">
+      <br>
+      <strong>放大检查与取色</strong><br>
+      像素网格、中心准星、原始 HEX 一次看清。
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/pixelmate-annotation.png" alt="PixelMate 文字批注界面">
+      <br>
+      <strong>原位批注</strong><br>
+      在点击位置输入多行文字，支持独立字体颜色。
+    </td>
+    <td width="50%">
+      <img src="docs/images/pixelmate-settings.png" alt="PixelMate 设置界面">
+      <br>
+      <strong>少量但实用的偏好</strong><br>
+      记住文件夹、默认放大倍率与首次操作指南。
+    </td>
+  </tr>
+</table>
 
 ## 为什么用 PixelMate
 
@@ -109,11 +144,13 @@ dotnet run --project src/PixelMate/PixelMate.csproj
 | 平台 | 当前状态 |
 | --- | --- |
 | macOS ARM64 | 已完成实际窗口功能测试；可从源码运行 |
-| Windows x64 | 已完成 Windows 实机全流程验收；提供自包含离线包 |
+| Windows x64 | 1.0.0 已完成实机全流程验收；1.0.1 提供自包含增量发布包 |
 
-正式公开下载包位于 GitHub Releases，推荐下载
-`PixelMate-1.0.0-win-x64-offline.zip`。完整解压后即可离线运行，不需要额外安装
+正式公开下载包位于
+[GitHub Releases](https://github.com/xjgd233/PixelMate/releases/latest)，推荐下载
+`PixelMate-1.0.1-win-x64-offline.zip`。完整解压后即可离线运行，不需要额外安装
 .NET Runtime。当前版本未签名，Windows SmartScreen 或智能应用控制仍可能提示风险。
+本次更新内容见 [1.0.1 发布说明](docs/release-notes-1.0.1.md)。
 
 ## 构建与测试
 

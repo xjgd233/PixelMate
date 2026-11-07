@@ -68,7 +68,7 @@ OID `1.3.6.1.5.5.7.3.3` 表示代码签名用途。不要把证书私钥或令�
 2. 使用 SHA-256 签署 `PixelMate.exe` 和 `PixelMate.dll`。
 3. 使用 DigiCert RFC 3161 服务添加时间戳。
 4. 执行 `signtool verify /pa /all`。
-5. 重新生成 `PixelMate-1.0.0-win-x64.zip` 并输出 SHA-256。
+5. 重新生成 `PixelMate-1.0.1-win-x64.zip` 并输出 SHA-256。
 
 也可手动验证：
 

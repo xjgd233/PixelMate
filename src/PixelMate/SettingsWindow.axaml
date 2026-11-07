@@ -132,7 +132,7 @@
 
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto">
             <TextBlock x:Name="SettingsVersionTextBlock"
-                       Text="PixelMate 1.0.0"
+                       Text="PixelMate 1.0.1"
                        Foreground="#74747B"
                        FontSize="11"
                        VerticalAlignment="Center" />

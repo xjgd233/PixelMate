@@ -1,6 +1,6 @@
-# PixelMate 1.0.0 Windows x64 验收清单
+# PixelMate 1.0.1 Windows x64 验收清单
 
-验收包：`PixelMate-1.0.0-win-x64-offline.zip`
+验收包：`PixelMate-1.0.1-win-x64-offline.zip`
 
 ## 准备
 
@@ -12,7 +12,7 @@
 4. 在 PowerShell 中核对压缩包：
 
 ```powershell
-Get-FileHash .\PixelMate-1.0.0-win-x64-offline.zip -Algorithm SHA256
+Get-FileHash .\PixelMate-1.0.1-win-x64-offline.zip -Algorithm SHA256
 ```
 
 5. 首次运行出现“Windows 已保护你的电脑”时，确认文件来源后选择“更多信息”与
@@ -22,7 +22,7 @@ Get-FileHash .\PixelMate-1.0.0-win-x64-offline.zip -Algorithm SHA256
 
 | 检查项 | 操作 | 预期结果 |
 | --- | --- | --- |
-| 启动 | 双击 `START-PIXELMATE.cmd` 或 `PixelMate.exe` | 正常显示深色主窗口，名称、图标和 `1.0.0` 正确；不提示安装 .NET |
+| 启动 | 双击 `START-PIXELMATE.cmd` 或 `PixelMate.exe` | 正常显示深色主窗口，名称、图标和 `1.0.1` 正确；不提示安装 .NET |
 | 窗口移动 | 拖动顶部标题栏，双击标题栏 | 可移动窗口；双击在最大化和还原之间切换 |
 | 首次指南 | 首次启动 | 自动显示操作指南；关闭后重启不再自动弹出 |
 | 文件选择 | `Ctrl+O` 打开 PNG、JPG、BMP、WebP | 都能载入，状态栏文件名和原始尺寸正确 |
@@ -30,7 +30,7 @@ Get-FileHash .\PixelMate-1.0.0-win-x64-offline.zip -Algorithm SHA256
 | 测量 | 按 `M` 后左键拖动 | 显示两端圆点与长度；复制结果包含起止坐标和 ΔX/ΔY |
 | 取色 | 按 `I`，移动并点击颜色 | 状态栏显示 HEX；点击后复制 HEX，RGB 按钮可复制 RGB |
 | 放大镜 | 按 `Z`，使用 `[` / `]` | 显示像素网格、中心十字与当前像素；倍率在 8×/12×/16×切换 |
-| 批注 | 按 `T`，点击图片并输入多行文字；选择色块或输入 `#RRGGBB` | `Ctrl+Enter` 保存；缩放和平移后批注框仍跟随图片 |
+| 批注 | 按 `T`，点击图片并输入多行文字；选择色块或输入 `#RRGGBB` | 编辑器出现在点击位置附近；靠近边缘时自动翻转；`Ctrl+Enter` 保存；缩放和平移后批注框仍跟随图片 |
 | 保存图片 | 点击“保存图片”或按 `Ctrl+S` | 打开系统保存位置选择器；输出 PNG 保持原图分辨率并含测量线与批注 |
 | 撤销 / 前进 | 添加或清空测量、批注后点击箭头按钮，或按 `Ctrl+Z` / `Ctrl+Y` | 撤销后内容恢复，前进后再次应用；无可用历史时对应按钮禁用 |
 | 复制 | `Ctrl+C` | 按当前工具复制测量、批注或当前 HEX |

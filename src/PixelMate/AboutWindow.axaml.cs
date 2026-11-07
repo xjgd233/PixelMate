@@ -20,7 +20,7 @@ public partial class AboutWindow : Window
         InitializeComponent();
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         VersionTextBlock.Text = version is null
-            ? "Version 1.0.0"
+            ? "Version 1.0.1"
             : $"Version {version.Major}.{version.Minor}.{version.Build}";
         GitHubButton.Content = AppIdentity.GitHubUrl
             .Replace("https://github.com/", string.Empty, StringComparison.OrdinalIgnoreCase);

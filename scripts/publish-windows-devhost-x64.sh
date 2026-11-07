@@ -4,7 +4,7 @@ set -euo pipefail
 project_root="$(cd "$(dirname "$0")/.." && pwd)"
 dotnet_bin="${DOTNET_ROOT:-$HOME/.dotnet}/dotnet"
 output_dir="$project_root/artifacts/PixelMate-devhost-win-x64"
-archive_path="$project_root/artifacts/PixelMate-1.0.0-win-x64-devhost.zip"
+archive_path="$project_root/artifacts/PixelMate-1.0.1-win-x64-devhost.zip"
 
 export AVALONIA_TELEMETRY_OPTOUT=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1

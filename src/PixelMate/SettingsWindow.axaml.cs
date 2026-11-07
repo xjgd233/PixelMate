@@ -18,7 +18,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         SettingsVersionTextBlock.Text = version is null
-            ? "PixelMate 1.0.0"
+            ? "PixelMate 1.0.1"
             : $"PixelMate {version.Major}.{version.Minor}.{version.Build}";
         RememberDirectoryCheckBox.IsChecked = settings.RememberLastDirectory;
         ShowTutorialEveryLaunchCheckBox.IsChecked = settings.ShowTutorialEveryLaunch;

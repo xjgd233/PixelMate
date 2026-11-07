@@ -1,6 +1,6 @@
 # PixelMate Windows x64 离线包
 
-`PixelMate-1.0.0-win-x64-offline.zip` 是完整的自包含发布包。
+`PixelMate-1.0.1-win-x64-offline.zip` 是完整的自包含发布包。
 
 ## 不需要安装 .NET
 
@@ -22,7 +22,7 @@
 兼容性排查和开发验收，不是离线正式包。
 
 如果文件夹名称是 `PixelMate-devhost-win-x64`，请改用
-`PixelMate-win-x64` 或 `PixelMate-1.0.0-win-x64-offline.zip`。
+`PixelMate-win-x64` 或 `PixelMate-1.0.1-win-x64-offline.zip`。
 
 ## Windows 提醒
 

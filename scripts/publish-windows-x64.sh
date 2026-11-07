@@ -4,8 +4,8 @@ set -euo pipefail
 project_root="$(cd "$(dirname "$0")/.." && pwd)"
 dotnet_bin="${DOTNET_ROOT:-$HOME/.dotnet}/dotnet"
 output_dir="$project_root/artifacts/PixelMate-win-x64"
-archive_path="$project_root/artifacts/PixelMate-1.0.0-win-x64.zip"
-offline_archive_path="$project_root/artifacts/PixelMate-1.0.0-win-x64-offline.zip"
+archive_path="$project_root/artifacts/PixelMate-1.0.1-win-x64.zip"
+offline_archive_path="$project_root/artifacts/PixelMate-1.0.1-win-x64-offline.zip"
 
 export AVALONIA_TELEMETRY_OPTOUT=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -49,11 +49,12 @@ find "$output_dir" -maxdepth 1 -type f -name '*.pdb' -delete
 cp "$project_root/README.md" "$output_dir/README.md"
 mkdir -p "$output_dir/docs"
 cp "$project_root/docs/phase-status.md" "$output_dir/docs/phase-status.md"
-cp "$project_root/docs/release-notes-1.0.0.md" \
-  "$output_dir/docs/release-notes-1.0.0.md"
+cp "$project_root/docs/release-notes-1.0.1.md" \
+  "$output_dir/docs/release-notes-1.0.1.md"
 cp "$project_root/docs/windows-acceptance-checklist.md" \
   "$output_dir/docs/windows-acceptance-checklist.md"
-cp "$project_root/docs/release-notes-1.0.0.md" "$output_dir/RELEASE-NOTES.md"
+cp -R "$project_root/docs/images" "$output_dir/docs/images"
+cp "$project_root/docs/release-notes-1.0.1.md" "$output_dir/RELEASE-NOTES.md"
 cp "$project_root/docs/windows-acceptance-checklist.md" \
   "$output_dir/WINDOWS-ACCEPTANCE.md"
 cp "$project_root/docs/windows-offline-package.md" \

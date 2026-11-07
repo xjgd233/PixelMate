@@ -10,8 +10,8 @@ $dotnet = if ($env:DOTNET_ROOT) {
     (Get-Command dotnet -ErrorAction Stop).Source
 }
 $outputDir = Join-Path $projectRoot "artifacts/PixelMate-win-x64"
-$archivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64.zip"
-$offlineArchivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.0-win-x64-offline.zip"
+$archivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.1-win-x64.zip"
+$offlineArchivePath = Join-Path $projectRoot "artifacts/PixelMate-1.0.1-win-x64-offline.zip"
 
 if (Test-Path $outputDir) {
     Remove-Item $outputDir -Recurse -Force
@@ -57,13 +57,17 @@ Copy-Item `
     (Join-Path $projectRoot "docs/phase-status.md") `
     (Join-Path $releaseDocsDir "phase-status.md")
 Copy-Item `
-    (Join-Path $projectRoot "docs/release-notes-1.0.0.md") `
-    (Join-Path $releaseDocsDir "release-notes-1.0.0.md")
+    (Join-Path $projectRoot "docs/release-notes-1.0.1.md") `
+    (Join-Path $releaseDocsDir "release-notes-1.0.1.md")
 Copy-Item `
     (Join-Path $projectRoot "docs/windows-acceptance-checklist.md") `
     (Join-Path $releaseDocsDir "windows-acceptance-checklist.md")
 Copy-Item `
-    (Join-Path $projectRoot "docs/release-notes-1.0.0.md") `
+    (Join-Path $projectRoot "docs/images") `
+    (Join-Path $releaseDocsDir "images") `
+    -Recurse
+Copy-Item `
+    (Join-Path $projectRoot "docs/release-notes-1.0.1.md") `
     (Join-Path $outputDir "RELEASE-NOTES.md")
 Copy-Item `
     (Join-Path $projectRoot "docs/windows-acceptance-checklist.md") `
